@@ -1,0 +1,4 @@
+package no.nav.dok.jiraapi.domain;
+
+public record Priority(String name) {
+}
