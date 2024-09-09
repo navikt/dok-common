@@ -1,0 +1,16 @@
+name: Publish artifact
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  publish-artifact:
+    permissions:
+      packages: write
+      contents: read
+    uses: navikt/dok-workflows/.github/workflows/publish-artifact.yml@main
+    with:
+      java-version: '21'
+    secrets: inherit
