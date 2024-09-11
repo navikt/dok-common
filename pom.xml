@@ -4,7 +4,8 @@
 
 	<groupId>no.nav.dok-common</groupId>
 	<artifactId>dok-common</artifactId>
-	<version>1.0-SNAPSHOT</version>
+	<version>${revision}</version>
+	<name>dok-common</name>
 	<packaging>pom</packaging>
 
 	<modules>
@@ -12,15 +13,17 @@
 	</modules>
 
 	<properties>
+		<revision>1.0-SNAPSHOT</revision>
 		<maven.compiler.source>21</maven.compiler.source>
-		<maven.compiler.target>21</maven.compiler.target>
+		<maven.compiler.version>3.13.0</maven.compiler.version>
+		<java.version>21</java.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
 		<lombok.version>1.18.34</lombok.version>
 		<commons-lang3.version>3.15.0</commons-lang3.version>
 		<jakarta.validation-api.version>3.1.0</jakarta.validation-api.version>
 
-		<spring-webflux.version>6.1.10</spring-webflux.version>
+		<spring-boot.version>3.3.3</spring-boot.version>
 		<maven-toolchains-plugin.version>3.2.0</maven-toolchains-plugin.version>
 	</properties>
 
@@ -36,12 +39,12 @@
 			<dependency>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot</artifactId>
-				<version>3.3.3</version>
+				<version>${spring-boot.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.springframework</groupId>
-				<artifactId>spring-webflux</artifactId>
-				<version>${spring-webflux.version}</version>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-starter-web</artifactId>
+				<version>${spring-boot.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.commons</groupId>
@@ -57,6 +60,7 @@
 			<dependency>
 				<groupId>org.projectlombok</groupId>
 				<artifactId>lombok</artifactId>
+				<scope>provided</scope>
 				<version>${lombok.version}</version>
 			</dependency>
 
@@ -67,11 +71,28 @@
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>jakarta.validation</groupId>
+			<artifactId>jakarta.validation-api</artifactId>
 		</dependency>
 	</dependencies>
 
 	<build>
 		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven.compiler.version}</version>
+				<configuration>
+					<source>${maven.compiler.source}</source>
+					<target>${maven.compiler.source}</target>
+					<compilerArgs>
+						<arg>-proc:only</arg>
+					</compilerArgs>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-failsafe-plugin</artifactId>
