@@ -1,11 +1,10 @@
 package no.nav.dok.jiracore.client;
 
 import lombok.extern.slf4j.Slf4j;
-import no.nav.dok.jiracore.config.JiraConstant;
+import no.nav.dok.jiraapi.JiraRequest;
 import no.nav.dok.jiracore.config.JiraProperties;
 import no.nav.dok.jiracore.exception.JiraClientException;
 import no.nav.dok.jiracore.exception.JiraTechnicalException;
-import no.nav.dok.jiraapi.JiraRequest;
 import no.nav.dok.jiracore.interndomain.Issue;
 import no.nav.dok.jiracore.interndomain.IssueInput;
 import no.nav.dok.jiracore.interndomain.JiraTransition;
@@ -22,6 +21,7 @@ import static no.nav.dok.jiracore.config.JiraConstant.ATTACHMENT;
 import static no.nav.dok.jiracore.config.JiraConstant.ISSUE;
 import static no.nav.dok.jiracore.config.JiraConstant.JIRA_PATH;
 import static no.nav.dok.jiracore.config.JiraConstant.PROJECT;
+import static no.nav.dok.jiracore.config.JiraConstant.PROJECT_KEY;
 import static no.nav.dok.jiracore.config.JiraConstant.TRANSITION;
 import static no.nav.dok.jiracore.config.JiraConstant.TRANSITION_ID;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -37,16 +37,15 @@ public class JiraClient {
 					  RestClient.Builder restClientBuilder) {
 		this.restClient = restClientBuilder
 				.baseUrl(jiraProperties.jiraEndpoint().url())
-				.defaultHeaders(httpHeaders -> {
-					httpHeaders.setBasicAuth(jiraProperties.serviceUser().username(), jiraProperties.serviceUser().password());
-				})
+				.defaultHeaders(httpHeaders ->
+						httpHeaders.setBasicAuth(jiraProperties.serviceUser().username(), jiraProperties.serviceUser().password()))
 				.build();
 	}
 
 	public Issue opprettJira(JiraRequest jiraRequest) {
 		try {
 
-			Project project = hentProject(JiraConstant.PROJECT_KEY);
+			Project project = hentProject();
 			IssueInput issueInput = JiraMapper.map(jiraRequest, project);
 
 			return restClient.post()
@@ -66,26 +65,18 @@ public class JiraClient {
 		}
 	}
 
-	public String leggTilVedlegg(String key, File file) {
-
-		if (key == null) {
-			throw new IllegalArgumentException("Kan ikke legge til vedlegg på Jira-saken. Prosjekt-key er null.");
-		} else if (file.length() == 0 && !file.exists()) {
-			throw new IllegalArgumentException("Kan ikke legge til vedlegg på Jira-saken. CSV-fil er null.");
-		}
-
-
+	public void leggTilVedlegg(String key, File file) {
 		try {
-			LinkedHashMap<String, Object> map = new LinkedHashMap<>();
+			LinkedHashMap<String, File> map = new LinkedHashMap<>();
 			map.put("file", file);
-			return restClient.post()
+			restClient.post()
 					.uri(uriBuilder -> uriBuilder
 							.pathSegment(JIRA_PATH, key, ATTACHMENT)
 							.build())
 					.accept(MULTIPART_FORM_DATA)
 					.retrieve()
 					.onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
-						throw new JiraClientException(format("leggTilVedlegg ({}) feilet funksjonelt med status={}, feilmelding={}",
+						throw new JiraClientException(format("leggTilVedlegg (%s) feilet funksjonelt med status=%s, feilmelding=%s",
 								file.getName(), response.getStatusCode(), response.getHeaders()));
 					}).body(String.class);
 
@@ -95,10 +86,10 @@ public class JiraClient {
 		}
 	}
 
-	private Project hentProject(String projectKey) {
+	private Project hentProject() {
 		try {
 			return restClient.get()
-					.uri(uriBuilder -> uriBuilder.pathSegment(JIRA_PATH, PROJECT, projectKey)
+					.uri(uriBuilder -> uriBuilder.pathSegment(JIRA_PATH, PROJECT, PROJECT_KEY)
 							.build())
 					.accept(APPLICATION_JSON)
 					.retrieve()
@@ -114,10 +105,10 @@ public class JiraClient {
 		}
 	}
 
-	public String oppdaterJiraStatus(final String key) {
+	public void oppdaterJiraStatus(final String key) {
 		try {
 			JiraTransition transition = new JiraTransition(new JiraTransition.Transition(TRANSITION_ID));
-			return restClient.post()
+			restClient.post()
 					.uri(uriBuilder -> uriBuilder
 							.pathSegment(JIRA_PATH, key, TRANSITION)
 							.build())
