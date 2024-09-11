@@ -14,7 +14,7 @@ public class JiraMapper {
 
 		Reporter reporter = new Reporter(null, jiraRequest.reporterName(), null);
 
-		Project newProject = project.builder()
+		Project newProject = Project.builder()
 				.key(project.key())
 				.name(project.name())
 				.build();
