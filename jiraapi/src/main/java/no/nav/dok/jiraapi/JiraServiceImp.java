@@ -10,7 +10,6 @@ import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 
-
 public class JiraServiceImp implements JiraService {
 
 	private final JiraClient jiraClient;
@@ -29,14 +28,13 @@ public class JiraServiceImp implements JiraService {
 	}
 
 	/**
-	 *
 	 * @param jiraRequest jira requesten som bruker til å opprette jira sak.
 	 * @return metoden opprette jira oppgave ved vedlegg og returnerer jira key, melding og httpstatus
 	 */
 	@Override
 	public JiraResponse opprettJiraOppgaveVedVedlegg(JiraRequest jiraRequest) {
 
-		if (!(nonNull(jiraRequest) && jiraRequest.file().exists())) {
+		if (nonNull(jiraRequest) && !jiraRequest.file().exists()) {
 			return new JiraResponse(null,
 					"Kan ikke opprette Jira-sak. Fant ingen vedlegg fil", "NO_CONTENT");
 		}
