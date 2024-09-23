@@ -5,19 +5,15 @@
 	<parent>
 		<groupId>no.nav.dok-common</groupId>
 		<artifactId>dok-common</artifactId>
-		<version>${revision}</version>
+		<version>1.0-SNAPSHOT</version>
 	</parent>
 
 	<groupId>no.nav.dok</groupId>
 	<artifactId>jiraapi</artifactId>
-	<version>${revision}</version>
+	<version>1.0-SNAPSHOT</version>
 
 
 	<dependencies>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
-		</dependency>
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
@@ -25,6 +21,10 @@
 		<dependency>
 			<groupId>jakarta.validation</groupId>
 			<artifactId>jakarta.validation-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
 		</dependency>
 	</dependencies>
 </project>

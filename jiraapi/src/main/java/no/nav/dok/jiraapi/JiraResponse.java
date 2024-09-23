@@ -1,7 +1,13 @@
 package no.nav.dok.jiraapi;
 
-import org.springframework.http.HttpStatusCode;
+/**
+ * @param jiraIssueKey   jira sak nøkkel som bruker til å åpne saken eller opprette andre oppgaves
+ * @param message
+ * @param httpStatusCode
+ */
 
-public record JiraResponse (String jiraIssueKey,
-							String message, HttpStatusCode httpStatusCode) {
+public record JiraResponse(
+		String jiraIssueKey,
+		String message,
+		String httpStatusCode) {
 }

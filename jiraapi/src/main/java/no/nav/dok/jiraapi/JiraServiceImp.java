@@ -8,8 +8,8 @@ import static java.lang.String.format;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.springframework.http.HttpStatus.NO_CONTENT;
-import static org.springframework.http.HttpStatus.OK;
+
+
 
 public class JiraServiceImp implements JiraService {
 
@@ -20,32 +20,36 @@ public class JiraServiceImp implements JiraService {
 	}
 
 	@Override
-	public JiraResponse opprettJira(JiraRequest jiraRequest) {
-
+	public JiraResponse opprettJiraOppgave(JiraRequest jiraRequest) {
 		Issue issue = jiraClient.opprettJira(jiraRequest);
 
-		jiraClient.oppdaterJiraStatus(issue.key());
+		jiraClient.oppdaterJiraStatus(issue.key(), jiraRequest.jiraServieUser().url(), jiraRequest.jiraServieUser().username(), jiraRequest.jiraServieUser().password());
 
-		return new JiraResponse(issue.key(), null, OK);
+		return new JiraResponse(issue.key(), null, "OK");
 	}
 
+	/**
+	 *
+	 * @param jiraRequest jira requesten som bruker til å opprette jira sak.
+	 * @return metoden opprette jira oppgave ved vedlegg og returnerer jira key, melding og httpstatus
+	 */
 	@Override
-	public JiraResponse opprettJiraVedVedlegg(JiraRequest jiraRequest) {
+	public JiraResponse opprettJiraOppgaveVedVedlegg(JiraRequest jiraRequest) {
+
 		if (!(nonNull(jiraRequest) && jiraRequest.file().exists())) {
 			return new JiraResponse(null,
-					"Kan ikke opprette Jira-sak. Fant ingen vedlegg fil", NO_CONTENT);
+					"Kan ikke opprette Jira-sak. Fant ingen vedlegg fil", "NO_CONTENT");
 		}
 
 		Issue issue = jiraClient.opprettJira(jiraRequest);
 
 		assertNotNullOrEmpty("key", issue.key());
 		assertNull("file", jiraRequest.file());
-		jiraClient.leggTilVedlegg(issue.key(), jiraRequest.file());
+		jiraClient.leggTilVedlegg(issue.key(), jiraRequest);
 
-		jiraClient.oppdaterJiraStatus(issue.key());
-		return new JiraResponse(issue.key(), null, OK);
+		jiraClient.oppdaterJiraStatus(issue.key(), jiraRequest.jiraServieUser().url(), jiraRequest.jiraServieUser().username(), jiraRequest.jiraServieUser().password());
+		return new JiraResponse(issue.key(), null, "OK");
 	}
-
 
 	public static void assertNotNullOrEmpty(String field, String value) {
 		if (isBlank(value)) {
@@ -58,5 +62,4 @@ public class JiraServiceImp implements JiraService {
 			throw new ValidationException(format("Feltet %s kan ikke være null eller tomt. Fikk %s=%s", field, field, value));
 		}
 	}
-
 }
