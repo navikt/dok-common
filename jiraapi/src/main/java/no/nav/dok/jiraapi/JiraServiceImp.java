@@ -22,7 +22,7 @@ public class JiraServiceImp implements JiraService {
 	public JiraResponse opprettJiraOppgave(JiraRequest jiraRequest) {
 		Issue issue = jiraClient.opprettJira(jiraRequest);
 
-		jiraClient.oppdaterJiraStatus(issue.key(), jiraRequest.jiraServieUser().url(), jiraRequest.jiraServieUser().username(), jiraRequest.jiraServieUser().password());
+		jiraClient.oppdaterJiraStatus(issue.key());
 
 		return new JiraResponse(issue.key(), null, "OK");
 	}
@@ -45,7 +45,7 @@ public class JiraServiceImp implements JiraService {
 		assertNull("file", jiraRequest.file());
 		jiraClient.leggTilVedlegg(issue.key(), jiraRequest);
 
-		jiraClient.oppdaterJiraStatus(issue.key(), jiraRequest.jiraServieUser().url(), jiraRequest.jiraServieUser().username(), jiraRequest.jiraServieUser().password());
+		jiraClient.oppdaterJiraStatus(issue.key());
 		return new JiraResponse(issue.key(), null, "OK");
 	}
 
