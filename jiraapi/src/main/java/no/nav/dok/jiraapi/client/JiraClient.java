@@ -1,10 +1,10 @@
-package no.nav.dok.jiracore.client;
+package no.nav.dok.jiraapi.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
 import no.nav.dok.jiraapi.JiraProperties;
 import no.nav.dok.jiraapi.JiraRequest;
+import no.nav.dok.jiracore.config.JiraMapper;
 import no.nav.dok.jiracore.exception.JiraClientException;
 import no.nav.dok.jiracore.exception.JiraServerException;
 import no.nav.dok.jiracore.interndomain.Issue;
@@ -29,10 +29,8 @@ import static no.nav.dok.jiracore.config.JiraConstant.TRANSITION;
 import static no.nav.dok.jiracore.config.JiraConstant.TRANSITION_ID;
 
 /**
- *
+ *  Jira api client bruker Java HttpClient til å gjøre kall mot jira
  */
-
-@Slf4j
 public class JiraClient {
 
 	public static String CONTENT_TYPE = "Content-Type";
@@ -54,7 +52,6 @@ public class JiraClient {
 		IssueInput issueInput = JiraMapper.map(request, project);
 
 		try {
-
 			String issueInputAsString = serialize(issueInput);
 
 			HttpRequest httpRequest = HttpRequest.newBuilder()
@@ -78,8 +75,6 @@ public class JiraClient {
 	}
 
 	public void leggTilVedlegg(String key, JiraRequest request) {
-
-
 		try {
 			byte[] bytes = new byte[(int) request.file().length()];
 

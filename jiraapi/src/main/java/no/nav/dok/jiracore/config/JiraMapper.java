@@ -1,4 +1,4 @@
-package no.nav.dok.jiracore.client;
+package no.nav.dok.jiracore.config;
 
 import no.nav.dok.jiraapi.JiraRequest;
 import no.nav.dok.jiracore.interndomain.BasicInputFields;

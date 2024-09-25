@@ -1,7 +1,7 @@
 package no.nav.dok.jiraapi;
 
 import jakarta.validation.ValidationException;
-import no.nav.dok.jiracore.client.JiraClient;
+import no.nav.dok.jiraapi.client.JiraClient;
 import no.nav.dok.jiracore.interndomain.Issue;
 
 import static java.lang.String.format;
@@ -57,7 +57,7 @@ public class JiraServiceImp implements JiraService {
 
 	public static void assertNull(String field, Object value) {
 		if (isNull(value)) {
-			throw new ValidationException(format("Feltet %s kan ikke være null eller tomt. Fikk %s=%s", field, field, value));
+			throw new ValidationException(format("Feltet %s kan ikke være null eller tomt. Fikk %s=null", field, field));
 		}
 	}
 }
