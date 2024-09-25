@@ -1,4 +1,4 @@
-package no.nav.dok.jiracore.client;
+package no.nav.dok.jiracore.config;
 
 import no.nav.dok.jiraapi.JiraRequest;
 import no.nav.dok.jiracore.interndomain.BasicInputFields;
@@ -9,6 +9,9 @@ import no.nav.dok.jiracore.interndomain.Reporter;
 
 import static no.nav.dok.jiracore.config.JiraConstant.ISSUE_TYPE_OPPGAVE;
 
+/**
+ *  JiraMapper strukturt til å tilpasse jira interndomain
+ */
 public class JiraMapper {
 	public static IssueInput map(JiraRequest jiraRequest, Project project) {
 

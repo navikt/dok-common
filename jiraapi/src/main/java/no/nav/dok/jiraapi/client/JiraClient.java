@@ -1,9 +1,10 @@
-package no.nav.dok.jiracore.client;
+package no.nav.dok.jiraapi.client;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
+import no.nav.dok.jiraapi.JiraProperties;
 import no.nav.dok.jiraapi.JiraRequest;
+import no.nav.dok.jiracore.config.JiraMapper;
 import no.nav.dok.jiracore.exception.JiraClientException;
 import no.nav.dok.jiracore.exception.JiraServerException;
 import no.nav.dok.jiracore.interndomain.Issue;
@@ -28,10 +29,8 @@ import static no.nav.dok.jiracore.config.JiraConstant.TRANSITION;
 import static no.nav.dok.jiracore.config.JiraConstant.TRANSITION_ID;
 
 /**
- *
+ *  Jira api client bruker Java HttpClient til å gjøre kall mot jira
  */
-
-@Slf4j
 public class JiraClient {
 
 	public static String CONTENT_TYPE = "Content-Type";
@@ -39,26 +38,26 @@ public class JiraClient {
 	public static String APPLICATION_JSON = "application/json";
 	public static final String MULTIPART_FORM_DATA_VALUE = "multipart/form-data";
 	private final HttpClient httpClient;
+	private final JiraProperties jiraProperties;
 
 
-	public JiraClient() {
-		this.httpClient = HttpClient.newBuilder()
-				.build();
+	public JiraClient(JiraProperties jiraProperties) {
+		this.httpClient = HttpClient.newHttpClient();
+		this.jiraProperties = jiraProperties;
 	}
 
 	public Issue opprettJira(JiraRequest request) {
 
-		Project project = hentProject(request.jiraServieUser().url(), request.jiraServieUser().username(), request.jiraServieUser().password());
+		Project project = hentProject(jiraProperties.url());
 		IssueInput issueInput = JiraMapper.map(request, project);
 
 		try {
-
 			String issueInputAsString = serialize(issueInput);
 
 			HttpRequest httpRequest = HttpRequest.newBuilder()
-					.uri(URI.create(request.jiraServieUser().url() + JIRA_PATH + ISSUE))
+					.uri(URI.create(jiraProperties.url() + JIRA_PATH + ISSUE))
 					.header(CONTENT_TYPE, APPLICATION_JSON)
-					.header("Authorization", getBasicAuthenticationHeader(request.jiraServieUser().username(), request.jiraServieUser().password()))
+					.header("Authorization", getBasicAuthenticationHeader())
 					.POST(HttpRequest.BodyPublishers.ofString(issueInputAsString))
 					.build();
 
@@ -76,15 +75,13 @@ public class JiraClient {
 	}
 
 	public void leggTilVedlegg(String key, JiraRequest request) {
-
-
 		try {
 			byte[] bytes = new byte[(int) request.file().length()];
 
 			HttpRequest httpRequest = HttpRequest.newBuilder()
-					.uri(URI.create(request.jiraServieUser().url() + JIRA_PATH + key + ATTACHMENT))
+					.uri(URI.create(jiraProperties.url() + JIRA_PATH + key + ATTACHMENT))
 					.header(CONTENT_TYPE, MULTIPART_FORM_DATA_VALUE)
-					.header(AUTHORIZATION, getBasicAuthenticationHeader(request.jiraServieUser().username(), request.jiraServieUser().password()))
+					.header(AUTHORIZATION, getBasicAuthenticationHeader())
 					.POST(HttpRequest.BodyPublishers.ofByteArray(bytes))
 					.build();
 			httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString()).body();
@@ -96,12 +93,12 @@ public class JiraClient {
 		}
 	}
 
-	private Project hentProject(String url, String username, String password) {
+	private Project hentProject(String url) {
 		try {
 			HttpRequest httpRequest = HttpRequest.newBuilder()
 					.uri(URI.create(url + PROJECT + PROJECT_KEY))
 					.header(CONTENT_TYPE, APPLICATION_JSON)
-					.header(AUTHORIZATION, getBasicAuthenticationHeader(username, password))
+					.header(AUTHORIZATION, getBasicAuthenticationHeader())
 					.GET()
 					.build();
 
@@ -115,12 +112,12 @@ public class JiraClient {
 		}
 	}
 
-	public void oppdaterJiraStatus(final String key, String url, String username, String password) {
+	public void oppdaterJiraStatus(final String key) {
 		try {
 			JiraTransition transition = new JiraTransition(new JiraTransition.Transition(TRANSITION_ID));
-			HttpRequest httpRequest = HttpRequest.newBuilder(URI.create(url + JIRA_PATH + key + TRANSITION))
+			HttpRequest httpRequest = HttpRequest.newBuilder(URI.create(jiraProperties.url() + JIRA_PATH + key + TRANSITION))
 					.header(CONTENT_TYPE, APPLICATION_JSON)
-					.header(AUTHORIZATION, getBasicAuthenticationHeader(username, password))
+					.header(AUTHORIZATION, getBasicAuthenticationHeader())
 					.POST(HttpRequest.BodyPublishers.ofString(serialize(transition)))
 					.build();
 			httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
@@ -131,9 +128,9 @@ public class JiraClient {
 		}
 	}
 
-	private String getBasicAuthenticationHeader(String username, String password) {
-		String valueToEncode = username + ":" + password;
-		return Base64.getEncoder().encodeToString(valueToEncode.getBytes());
+	private String getBasicAuthenticationHeader() {
+		String valueToEncode = jiraProperties.jiraServieUser().username() + ":" + jiraProperties.jiraServieUser().username();
+		return "Basic " + Base64.getEncoder().encodeToString(valueToEncode.getBytes());
 	}
 
 	private <T> T deserialize(String jsonPayload, Class<T> tClass) {
