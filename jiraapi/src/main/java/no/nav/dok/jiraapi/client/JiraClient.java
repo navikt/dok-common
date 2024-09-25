@@ -96,7 +96,7 @@ public class JiraClient {
 	private Project hentProject(String url) {
 		try {
 			HttpRequest httpRequest = HttpRequest.newBuilder()
-					.uri(URI.create(url + PROJECT + PROJECT_KEY))
+					.uri(URI.create(url + JIRA_PATH + PROJECT + PROJECT_KEY))
 					.header(CONTENT_TYPE, APPLICATION_JSON)
 					.header(AUTHORIZATION, getBasicAuthenticationHeader())
 					.GET()
