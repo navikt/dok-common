@@ -18,6 +18,4 @@ public record JiraRequest(
 		String summary,
 		List<String> labels,
 		File file) {
-
-
 }

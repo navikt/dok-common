@@ -8,9 +8,7 @@
 		<version>1.0-SNAPSHOT</version>
 	</parent>
 
-	<groupId>no.nav.dok</groupId>
 	<artifactId>jiraapi</artifactId>
-	<version>1.0-SNAPSHOT</version>
 
 	<dependencies>
 		<dependency>
