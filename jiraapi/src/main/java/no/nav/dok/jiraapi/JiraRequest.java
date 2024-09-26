@@ -1,5 +1,6 @@
 package no.nav.dok.jiraapi;
 
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Builder;
 
 import java.io.File;
@@ -16,9 +17,9 @@ import java.util.List;
 
 @Builder
 public record JiraRequest(
-		String reporterName,
-		String description,
-		String summary,
+		@NotEmpty String reporterName,
+		@NotEmpty String description,
+		@NotEmpty String summary,
 		List<String> labels,
 		File file) {
 }
