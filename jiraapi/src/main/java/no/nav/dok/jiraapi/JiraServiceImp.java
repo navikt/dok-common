@@ -4,13 +4,18 @@ import jakarta.validation.ValidationException;
 import no.nav.dok.jiraapi.client.JiraClient;
 import no.nav.dok.jiracore.interndomain.Issue;
 
+import java.net.URI;
+
 import static java.lang.String.format;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
+import static no.nav.dok.jiracore.config.JiraConstant.BROWSE;
+import static no.nav.dok.jiracore.config.JiraConstant.NO_CONTENT_STATUS_CODE;
+import static no.nav.dok.jiracore.config.JiraConstant.OK_STATUS_CODE;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
-
 public class JiraServiceImp implements JiraService {
+
 
 	private final JiraClient jiraClient;
 
@@ -24,7 +29,10 @@ public class JiraServiceImp implements JiraService {
 
 		jiraClient.oppdaterJiraStatus(issue.key());
 
-		return new JiraResponse(issue.key(), null, "OK");
+		return JiraResponse.builder().jiraIssueKey(issue.key())
+				.message(responseUrl(issue.self(), issue.key()))
+				.httpStatusCode(OK_STATUS_CODE)
+				.build();
 	}
 
 	/**
@@ -35,8 +43,10 @@ public class JiraServiceImp implements JiraService {
 	public JiraResponse opprettJiraOppgaveVedVedlegg(JiraRequest jiraRequest) {
 
 		if (nonNull(jiraRequest) && !jiraRequest.file().exists()) {
-			return new JiraResponse(null,
-					"Kan ikke opprette Jira-sak. Fant ingen vedlegg fil", "NO_CONTENT");
+			return JiraResponse.builder()
+					.message("Kan ikke opprette Jira-sak. Fant ingen vedlegg fil")
+					.httpStatusCode(NO_CONTENT_STATUS_CODE)
+					.build();
 		}
 
 		Issue issue = jiraClient.opprettJira(jiraRequest);
@@ -45,8 +55,12 @@ public class JiraServiceImp implements JiraService {
 		assertNull("file", jiraRequest.file());
 		jiraClient.leggTilVedlegg(issue.key(), jiraRequest);
 
-		jiraClient.oppdaterJiraStatus(issue.key());
-		return new JiraResponse(issue.key(), null, "OK");
+		Issue oppdatertIssue = jiraClient.oppdaterJiraStatus(issue.key());
+		return JiraResponse.builder().jiraIssueKey(issue.key())
+				.message(responseUrl(issue.self(), issue.key()))
+				.status(oppdatertIssue.status().name())
+				.httpStatusCode(OK_STATUS_CODE)
+				.build();
 	}
 
 	public static void assertNotNullOrEmpty(String field, String value) {
@@ -59,5 +73,10 @@ public class JiraServiceImp implements JiraService {
 		if (isNull(value)) {
 			throw new ValidationException(format("Feltet %s kan ikke være null eller tomt. Fikk %s=null", field, field));
 		}
+	}
+
+	private String responseUrl(String self, String key) {
+		URI uri = URI.create(self);
+		return "https://" + uri.getHost() + BROWSE + key;
 	}
 }

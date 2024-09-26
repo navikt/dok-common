@@ -3,10 +3,5 @@ package no.nav.dok.jiracore.interndomain;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record Issue(
-		String expand,
-		String id,
-		String self,
-		String key,
-		Status status) {
+public record Status(String name) {
 }
