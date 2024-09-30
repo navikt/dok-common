@@ -1,5 +1,6 @@
 package no.nav.dok.jiraapi.client;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import no.nav.dok.jiraapi.JiraProperties;
@@ -13,19 +14,21 @@ import no.nav.dok.jiracore.interndomain.JiraTransition;
 import no.nav.dok.jiracore.interndomain.Project;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.ProxySelector;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.Base64;
 
 import static java.lang.String.format;
 import static no.nav.dok.jiracore.config.JiraConstant.ATTACHMENT;
 import static no.nav.dok.jiracore.config.JiraConstant.ISSUE_PATH;
-import static no.nav.dok.jiracore.config.JiraConstant.JIRA_PATH;
-import static no.nav.dok.jiracore.config.JiraConstant.PROJECT;
 import static no.nav.dok.jiracore.config.JiraConstant.PROJECT_KEY;
+import static no.nav.dok.jiracore.config.JiraConstant.PROJECT_PATH;
 import static no.nav.dok.jiracore.config.JiraConstant.TRANSITION;
 import static no.nav.dok.jiracore.config.JiraConstant.TRANSITION_ID;
 
@@ -44,8 +47,11 @@ public class JiraClient {
 	private final JiraProperties jiraProperties;
 
 	public JiraClient(JiraProperties jiraProperties) {
-		this.httpClient = HttpClient.newHttpClient();
 		this.jiraProperties = jiraProperties;
+		this.httpClient = HttpClient.newBuilder()
+				.proxy(ProxySelector.of(new InetSocketAddress(jiraProperties.proxy().host(), jiraProperties.proxy().port())))
+				.connectTimeout(Duration.ofSeconds(15))
+				.build();
 	}
 
 	public Issue opprettJira(JiraRequest request) {
@@ -93,7 +99,7 @@ public class JiraClient {
 	private Project hentProject(String url) {
 		try {
 			HttpRequest httpRequest = HttpRequest.newBuilder()
-					.uri(URI.create(url + JIRA_PATH + PROJECT + PROJECT_KEY))
+					.uri(URI.create(url + PROJECT_PATH + PROJECT_KEY))
 					.header(CONTENT_TYPE, APPLICATION_JSON)
 					.header("Accept", APPLICATION_JSON)
 					.header(AUTHORIZATION, getBasicAuthenticationHeader())
