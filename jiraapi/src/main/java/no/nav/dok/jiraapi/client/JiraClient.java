@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import no.nav.dok.jiraapi.JiraProperties;
 import no.nav.dok.jiraapi.JiraRequest;
 import no.nav.dok.jiracore.config.JiraMapper;
-import no.nav.dok.jiracore.config.JsonBodyHandler;
 import no.nav.dok.jiracore.exception.JiraClientException;
 import no.nav.dok.jiracore.exception.JiraServerException;
 import no.nav.dok.jiracore.interndomain.Issue;
@@ -63,12 +62,12 @@ public class JiraClient {
 					.POST(HttpRequest.BodyPublishers.ofString(issueInputAsString))
 					.build();
 
-			HttpResponse<Issue> response = httpClient.send(httpRequest, new JsonBodyHandler<>(Issue.class));
+			HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
 
 			if (response.statusCode() != 200) {
 				throw new JiraClientException(format("opprettJira feilt med status=%s", response.statusCode()));
 			}
-			return response.body();
+			return deserialize(response.body(), Issue.class);
 		} catch (IOException e) {
 			throw new JiraClientException(format("opprettJira feilt funksjonelt med feilmelding=%s", e.getMessage()));
 		} catch (InterruptedException e) {
@@ -101,7 +100,11 @@ public class JiraClient {
 					.GET()
 					.build();
 
-			return httpClient.send(httpRequest, new JsonBodyHandler<>(Project.class)).body();
+			HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+			if (response.statusCode() != 200) {
+				throw new JiraClientException(format("hentProject feilet med status=%s, feilmelding=%s", response.statusCode(), response.headers()));
+			}
+			return deserialize(response.body(), Project.class);
 
 		} catch (IOException e) {
 			throw new JiraClientException(format("hentProject feilet funksjonelt med feilmelding=%s", e.getMessage()), e.getCause());
@@ -136,12 +139,15 @@ public class JiraClient {
 				.GET()
 				.build();
 		try {
-			HttpResponse<Issue> response = httpClient.send(httpRequest, new JsonBodyHandler<>(Issue.class));
-			return response.body();
+			HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+			if (response.statusCode() != 200) {
+				throw new JiraClientException(format("hentIssue feilet med status=%s, feilmelding=%s", response.statusCode(), response.headers()));
+			}
+			return deserialize(response.body(), Issue.class);
 		} catch (IOException e) {
-			throw new JiraClientException(format("hentIssue feilet teknisk med med feilmelding=%s", e.getMessage()), e.getCause());
+			throw new JiraClientException(format("hentIssue feilet med feilmelding=%s", e.getMessage()), e.getCause());
 		} catch (InterruptedException e) {
-			throw new JiraClientException(format("hentIssue feilet teknisk med med feilmelding=%s", e.getMessage()), e);
+			throw new JiraClientException(format("hentIssue feilet teknisk med feilmelding=%s", e.getMessage()), e);
 		}
 	}
 
@@ -154,6 +160,15 @@ public class JiraClient {
 		try {
 			ObjectMapper objectMapper = new ObjectMapper();
 			return objectMapper.writeValueAsString(object);
+		} catch (JsonProcessingException e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+	private <T> T deserialize(String jsonString, Class<T> tClass) {
+		try {
+			ObjectMapper mapper = new ObjectMapper();
+			return mapper.readValue(jsonString, tClass);
 		} catch (JsonProcessingException e) {
 			throw new IllegalStateException(e);
 		}
