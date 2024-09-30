@@ -1,6 +1,5 @@
 package no.nav.dok.jiraapi.client;
 
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import no.nav.dok.jiraapi.JiraProperties;
