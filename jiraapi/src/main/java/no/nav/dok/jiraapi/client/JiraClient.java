@@ -70,11 +70,11 @@ public class JiraClient {
 			HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
 
 			if (response.statusCode() != 200) {
-				throw new JiraClientException(format("opprettJira feilt med status=%s", response.statusCode()));
+				throw new JiraClientException(format("opprettJira feilet med status=%s", response.statusCode()));
 			}
 			return deserialize(response.body(), Issue.class);
-		} catch (IOException e) {
-			throw new JiraClientException(format("opprettJira feilt funksjonelt med feilmelding=%s", e.getMessage()));
+		} catch (IOException | IllegalStateException e) {
+			throw new JiraClientException(format("opprettJira feilet funksjonelt med feilmelding=%s", e.getMessage()));
 		} catch (InterruptedException e) {
 			throw new JiraServerException(format("opprettJira feilet teknisk med feilmelding=%s", e.getMessage()), e);
 		}
@@ -111,7 +111,7 @@ public class JiraClient {
 			}
 			return deserialize(response.body(), Project.class);
 
-		} catch (IOException e) {
+		} catch (IOException | IllegalStateException e) {
 			throw new JiraClientException(format("hentProject feilet funksjonelt med feilmelding=%s", e.getMessage()), e.getCause());
 		} catch (InterruptedException e) {
 			throw new JiraServerException(format("hentProject feilet teknisk med feilmelding=%s", e.getMessage()), e);
@@ -149,7 +149,7 @@ public class JiraClient {
 				throw new JiraClientException(format("hentIssue feilet med status=%s, feilmelding=%s", response.statusCode(), response.headers()));
 			}
 			return deserialize(response.body(), Issue.class);
-		} catch (IOException e) {
+		} catch (IOException | IllegalStateException e) {
 			throw new JiraClientException(format("hentIssue feilet med feilmelding=%s", e.getMessage()), e.getCause());
 		} catch (InterruptedException e) {
 			throw new JiraClientException(format("hentIssue feilet teknisk med feilmelding=%s", e.getMessage()), e);
