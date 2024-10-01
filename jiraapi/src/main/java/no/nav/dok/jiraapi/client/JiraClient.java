@@ -7,13 +7,19 @@ import no.nav.dok.jiraapi.JiraRequest;
 import no.nav.dok.jiracore.config.JiraMapper;
 import no.nav.dok.jiracore.config.JsonBodyHandler;
 import no.nav.dok.jiracore.exception.JiraClientException;
+import no.nav.dok.jiracore.exception.JiraServerException;
 import no.nav.dok.jiracore.interndomain.Issue;
 import no.nav.dok.jiracore.interndomain.IssueInput;
 import no.nav.dok.jiracore.interndomain.JiraTransition;
 import no.nav.dok.jiracore.interndomain.Project;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.web.client.RestClient;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.ProxySelector;
 import java.net.URI;
@@ -38,17 +44,25 @@ import static no.nav.dok.jiracore.config.JiraConstant.TRANSITION_ID;
 
 public class JiraClient {
 
-    public static final Logger logger = LoggerFactory.getLogger(JiraClient.class);
+	public static final Logger logger = LoggerFactory.getLogger(JiraClient.class);
 	public static String CONTENT_TYPE = "content-type";
 	public static final String AUTHORIZATION = "Authorization";
 	public static String APPLICATION_JSON = "application/json";
 	private final HttpClient httpClient;
+	private final RestClient restClient;
 
 
 	private final JiraProperties jiraProperties;
 
 	public JiraClient(JiraProperties jiraProperties) {
 		this.jiraProperties = jiraProperties;
+		this.restClient = RestClient.builder()
+				.baseUrl(jiraProperties.url())
+				.defaultHeaders(httpHeaders ->
+						httpHeaders.setBasicAuth(jiraProperties.jiraServieUser().username(), jiraProperties.jiraServieUser().password()))
+				.requestFactory(new HttpComponentsClientHttpRequestFactory())
+				.build();
+
 		this.httpClient = HttpClient.newBuilder()
 				.proxy(ProxySelector.of(new InetSocketAddress(jiraProperties.proxy().host(), jiraProperties.proxy().port())))
 				.connectTimeout(Duration.ofSeconds(15))
@@ -56,7 +70,7 @@ public class JiraClient {
 	}
 
 	public Issue opprettJira(JiraRequest request) {
-		Project project = hentProject(jiraProperties.url());
+		Project project = hentProject();
 		IssueInput issueInput = JiraMapper.map(request, project);
 
 		try {
@@ -69,12 +83,12 @@ public class JiraClient {
 					.POST(HttpRequest.BodyPublishers.ofString(issueInputAsString))
 					.build();
 
-			HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+			HttpResponse<Issue> response = httpClient.send(httpRequest, new JsonBodyHandler<>(Issue.class));
 
 			if (response.statusCode() != 200) {
 				throw new JiraClientException(format("opprettJira feilet med status=%s", response.statusCode()));
 			}
-			return deserialize(response.body(), Issue.class);
+			return response.body();
 		} catch (Exception e) {
 			throw new JiraClientException(format("opprettJira feilet funksjonelt med feilmelding=%s", e.getMessage()));
 		}
@@ -93,27 +107,20 @@ public class JiraClient {
 		}
 	}
 
-	private Project hentProject(String url) {
-		try {
-			HttpRequest httpRequest = HttpRequest.newBuilder()
-					.uri(URI.create(url + PROJECT_PATH + PROJECT_KEY))
-					.header(CONTENT_TYPE, APPLICATION_JSON)
-					.header(AUTHORIZATION, getBasicAuthenticationHeader())
-					.GET()
-					.build();
+	private Project hentProject() {
 
-			HttpResponse<Project> response = httpClient.sendAsync(httpRequest, new JsonBodyHandler<>(Project.class)).get();
-
-			if (response.statusCode() != 200) {
-				throw new JiraClientException(format("hentProject feilet med status=%s, feilmelding=%s", response.statusCode(), response.headers()));
-			}
-			logger.info("Hentet project fra jira med projectId={} og status", response.body().name(), response.statusCode());
-			return response.body();
-
-		} catch (Exception e) {
-			logger.error("hentProject feilet funksjonelt med feilmelding={}", e.getStackTrace());
-			throw new JiraClientException(format("hentProject feilet funksjonelt med feilmelding=%s", e.getMessage()), e.getCause());
-		}
+		return restClient.get()
+				.uri(uriBuilder -> uriBuilder.path(PROJECT_PATH + PROJECT_KEY).build())
+				.header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
+				.exchange((req, res) -> {
+					if (res.getStatusCode().isError()) {
+						if (res.getStatusCode().is4xxClientError()) {
+							throw new JiraClientException(format("opprettJira feilet funksjonelt med feilmelding=%s", res.getStatusText()));
+						}
+						throw new JiraServerException(format("opprettJira feilet teknisk med feilmelding=%s", res.getStatusText()));
+					}
+					return deserialize(res.getBody(), Project.class);
+				});
 	}
 
 	public Issue oppdaterJiraStatus(final String key) {
@@ -140,11 +147,11 @@ public class JiraClient {
 				.GET()
 				.build();
 		try {
-			HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+			HttpResponse<Issue> response = httpClient.send(httpRequest, new JsonBodyHandler<>(Issue.class));
 			if (response.statusCode() != 200) {
 				throw new JiraClientException(format("hentIssue feilet med status=%s, feilmelding=%s", response.statusCode(), response.headers()));
 			}
-			return deserialize(response.body(), Issue.class);
+			return response.body();
 		} catch (Exception e) {
 			throw new JiraClientException(format("hentIssue feilet med feilmelding=%s", e.getMessage()), e.getCause());
 		}
@@ -164,12 +171,12 @@ public class JiraClient {
 		}
 	}
 
-	private <T> T deserialize(String jsonString, Class<T> tClass) {
+	private <T> T deserialize(InputStream jsonString, Class<T> tClass) {
 		try {
 			ObjectMapper mapper = new ObjectMapper();
 			return mapper.readValue(jsonString, tClass);
-		} catch (JsonProcessingException e) {
-			throw new IllegalStateException(e);
+		} catch (IOException e) {
+			throw new JiraClientException("Json mapping feilet", e);
 		}
 	}
 }
