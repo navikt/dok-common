@@ -16,6 +16,5 @@ public record Project(
 		String name,
 		String url,
 		List<Component> components,
-		List<IssueType> issueTypes,
-		List<Version> versions) {
+		List<IssueType> issueTypes) {
 }
