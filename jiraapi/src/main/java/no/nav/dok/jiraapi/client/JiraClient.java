@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import no.nav.dok.jiraapi.JiraProperties;
 import no.nav.dok.jiraapi.JiraRequest;
 import no.nav.dok.jiracore.config.JiraMapper;
+import no.nav.dok.jiracore.config.JsonBodyHandler;
 import no.nav.dok.jiracore.exception.JiraClientException;
 import no.nav.dok.jiracore.exception.JiraServerException;
 import no.nav.dok.jiracore.interndomain.Issue;
@@ -105,11 +106,12 @@ public class JiraClient {
 					.GET()
 					.build();
 
-			HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+			HttpResponse<Project> response = httpClient.send(httpRequest, new JsonBodyHandler<>(Project.class));
 			if (response.statusCode() != 200) {
 				throw new JiraClientException(format("hentProject feilet med status=%s, feilmelding=%s", response.statusCode(), response.headers()));
 			}
-			return deserialize(response.body(), Project.class);
+
+			return response.body();
 
 		} catch (IOException | IllegalStateException e) {
 			throw new JiraClientException(format("hentProject feilet funksjonelt med feilmelding=%s", e.getMessage()), e.getCause());

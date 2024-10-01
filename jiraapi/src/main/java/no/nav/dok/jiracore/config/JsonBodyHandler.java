@@ -26,7 +26,8 @@ public class JsonBodyHandler<T> implements HttpResponse.BodyHandler<T> {
 		return HttpResponse.BodySubscribers.mapping(upstream,
 				(String body) -> {
 					try {
-						ObjectMapper mapper = new ObjectMapper().configure(IGNORE_UNKNOWN, true);
+						ObjectMapper mapper = new ObjectMapper()
+								.configure(IGNORE_UNKNOWN, true);
 						return mapper.readValue(body, targetType);
 					} catch (JsonProcessingException e) {
 						throw new JiraClientException(e.getMessage(), e);
