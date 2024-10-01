@@ -7,7 +7,6 @@ import no.nav.dok.jiraapi.JiraRequest;
 import no.nav.dok.jiracore.config.JiraMapper;
 import no.nav.dok.jiracore.config.JsonBodyHandler;
 import no.nav.dok.jiracore.exception.JiraClientException;
-import no.nav.dok.jiracore.exception.JiraServerException;
 import no.nav.dok.jiracore.interndomain.Issue;
 import no.nav.dok.jiracore.interndomain.IssueInput;
 import no.nav.dok.jiracore.interndomain.JiraTransition;
@@ -15,7 +14,6 @@ import no.nav.dok.jiracore.interndomain.Project;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ProxySelector;
 import java.net.URI;
@@ -77,10 +75,8 @@ public class JiraClient {
 				throw new JiraClientException(format("opprettJira feilet med status=%s", response.statusCode()));
 			}
 			return deserialize(response.body(), Issue.class);
-		} catch (IOException | IllegalStateException e) {
+		} catch (Exception e) {
 			throw new JiraClientException(format("opprettJira feilet funksjonelt med feilmelding=%s", e.getMessage()));
-		} catch (InterruptedException e) {
-			throw new JiraServerException(format("opprettJira feilet teknisk med feilmelding=%s", e.getMessage()), e);
 		}
 	}
 
@@ -92,10 +88,8 @@ public class JiraClient {
 					.POST(HttpRequest.BodyPublishers.ofFile(Path.of(request.file().getPath())))
 					.build();
 			httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-		} catch (IOException e) {
+		} catch (Exception e) {
 			throw new JiraClientException(format("opprettJiraVedVedlegg feilet funksjonelt med feilmelding=%s", e.getMessage()), e.getCause());
-		} catch (InterruptedException e) {
-			throw new JiraServerException(format("opprettJira feilet teknisk  med feilmelding=%s", e.getMessage()), e);
 		}
 	}
 
@@ -108,7 +102,7 @@ public class JiraClient {
 					.GET()
 					.build();
 
-			HttpResponse<Project> response = httpClient.send(httpRequest, new JsonBodyHandler<>(Project.class));
+			HttpResponse<Project> response = httpClient.sendAsync(httpRequest, new JsonBodyHandler<>(Project.class)).get();
 
 			if (response.statusCode() != 200) {
 				throw new JiraClientException(format("hentProject feilet med status=%s, feilmelding=%s", response.statusCode(), response.headers()));
@@ -116,11 +110,9 @@ public class JiraClient {
 			logger.info("Hentet project fra jira med projectId={} og status", response.body().name(), response.statusCode());
 			return response.body();
 
-		} catch (IOException | IllegalStateException e) {
+		} catch (Exception e) {
 			logger.error("hentProject feilet funksjonelt med feilmelding={}", e.getStackTrace());
 			throw new JiraClientException(format("hentProject feilet funksjonelt med feilmelding=%s", e.getMessage()), e.getCause());
-		} catch (InterruptedException e) {
-			throw new JiraServerException(format("hentProject feilet teknisk med feilmelding=%s", e.getMessage()), e);
 		}
 	}
 
@@ -136,10 +128,8 @@ public class JiraClient {
 
 			return hentIssue(key);
 
-		} catch (IOException e) {
-			throw new JiraClientException(format("oppdaterJiraStatus feilet teknisk med med feilmelding=%s", e.getMessage()), e.getCause());
-		} catch (InterruptedException e) {
-			throw new JiraClientException(format("oppdaterJiraStatus feilet teknisk med med feilmelding=%s", e.getMessage()), e);
+		} catch (Exception e) {
+			throw new JiraClientException(format("oppdaterJiraStatus feilet med med feilmelding=%s", e.getMessage()), e.getCause());
 		}
 	}
 
@@ -155,10 +145,8 @@ public class JiraClient {
 				throw new JiraClientException(format("hentIssue feilet med status=%s, feilmelding=%s", response.statusCode(), response.headers()));
 			}
 			return deserialize(response.body(), Issue.class);
-		} catch (IOException | IllegalStateException e) {
+		} catch (Exception e) {
 			throw new JiraClientException(format("hentIssue feilet med feilmelding=%s", e.getMessage()), e.getCause());
-		} catch (InterruptedException e) {
-			throw new JiraClientException(format("hentIssue feilet teknisk med feilmelding=%s", e.getMessage()), e);
 		}
 	}
 
