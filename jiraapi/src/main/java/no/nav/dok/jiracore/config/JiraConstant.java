@@ -2,7 +2,7 @@ package no.nav.dok.jiracore.config;
 
 public class JiraConstant {
 	public static final String JIRA_PATH = "/rest/api/2/";
-	public static final String PROJECT_PATH = JIRA_PATH + "project/";
+	public static final String PROJECT_PATH = "/rest/api/2/project/";
 	public static final String ISSUE_PATH = JIRA_PATH + "issue";
 	public static final String ISSUE_TYPE_OPPGAVE = "Oppgave";
 	public static final String ATTACHMENT = "/attachments";

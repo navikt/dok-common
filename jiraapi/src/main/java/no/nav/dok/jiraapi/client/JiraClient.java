@@ -12,6 +12,8 @@ import no.nav.dok.jiracore.interndomain.Issue;
 import no.nav.dok.jiracore.interndomain.IssueInput;
 import no.nav.dok.jiracore.interndomain.JiraTransition;
 import no.nav.dok.jiracore.interndomain.Project;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -38,6 +40,7 @@ import static no.nav.dok.jiracore.config.JiraConstant.TRANSITION_ID;
 
 public class JiraClient {
 
+    public static final Logger logger = LoggerFactory.getLogger(JiraClient.class);
 	public static String CONTENT_TYPE = "content-type";
 	public static final String AUTHORIZATION = "Authorization";
 	public static String APPLICATION_JSON = "application/json";
@@ -101,19 +104,20 @@ public class JiraClient {
 			HttpRequest httpRequest = HttpRequest.newBuilder()
 					.uri(URI.create(url + PROJECT_PATH + PROJECT_KEY))
 					.header(CONTENT_TYPE, APPLICATION_JSON)
-					.header("Accept", APPLICATION_JSON)
 					.header(AUTHORIZATION, getBasicAuthenticationHeader())
 					.GET()
 					.build();
 
 			HttpResponse<Project> response = httpClient.send(httpRequest, new JsonBodyHandler<>(Project.class));
+
 			if (response.statusCode() != 200) {
 				throw new JiraClientException(format("hentProject feilet med status=%s, feilmelding=%s", response.statusCode(), response.headers()));
 			}
-
+			logger.info("Hentet project fra jira med projectId={} og status", response.body().name(), response.statusCode());
 			return response.body();
 
 		} catch (IOException | IllegalStateException e) {
+			logger.error("hentProject feilet funksjonelt med feilmelding={}", e.getStackTrace());
 			throw new JiraClientException(format("hentProject feilet funksjonelt med feilmelding=%s", e.getMessage()), e.getCause());
 		} catch (InterruptedException e) {
 			throw new JiraServerException(format("hentProject feilet teknisk med feilmelding=%s", e.getMessage()), e);
