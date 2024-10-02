@@ -7,20 +7,15 @@ import no.nav.dok.jiraapi.JiraRequest;
 import no.nav.dok.jiracore.config.JiraMapper;
 import no.nav.dok.jiracore.config.JsonBodyHandler;
 import no.nav.dok.jiracore.exception.JiraClientException;
-import no.nav.dok.jiracore.exception.JiraServerException;
 import no.nav.dok.jiracore.interndomain.Issue;
 import no.nav.dok.jiracore.interndomain.IssueInput;
 import no.nav.dok.jiracore.interndomain.JiraTransition;
 import no.nav.dok.jiracore.interndomain.Project;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.web.client.RestClient;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetSocketAddress;
 import java.net.ProxySelector;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -49,22 +44,15 @@ public class JiraClient {
 	public static final String AUTHORIZATION = "Authorization";
 	public static String APPLICATION_JSON = "application/json";
 	private final HttpClient httpClient;
-	private final RestClient restClient;
 
 
 	private final JiraProperties jiraProperties;
 
 	public JiraClient(JiraProperties jiraProperties) {
 		this.jiraProperties = jiraProperties;
-		this.restClient = RestClient.builder()
-				.baseUrl(jiraProperties.url())
-				.defaultHeaders(httpHeaders ->
-						httpHeaders.setBasicAuth(jiraProperties.jiraServieUser().username(), jiraProperties.jiraServieUser().password()))
-				.requestFactory(new HttpComponentsClientHttpRequestFactory())
-				.build();
 
 		this.httpClient = HttpClient.newBuilder()
-				.proxy(ProxySelector.of(new InetSocketAddress(jiraProperties.proxy().host(), jiraProperties.proxy().port())))
+				.proxy(ProxySelector.getDefault())
 				.connectTimeout(Duration.ofSeconds(15))
 				.build();
 	}
@@ -108,19 +96,26 @@ public class JiraClient {
 	}
 
 	private Project hentProject() {
+		try {
+			HttpRequest httpRequest = HttpRequest.newBuilder()
+					.uri(URI.create(jiraProperties.url() + PROJECT_PATH + PROJECT_KEY))
+					.header(CONTENT_TYPE, APPLICATION_JSON)
+					.header(AUTHORIZATION, getBasicAuthenticationHeader())
+					.GET()
+					.build();
 
-		return restClient.get()
-				.uri(uriBuilder -> uriBuilder.path(PROJECT_PATH + PROJECT_KEY).build())
-				.header(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON)
-				.exchange((req, res) -> {
-					if (res.getStatusCode().isError()) {
-						if (res.getStatusCode().is4xxClientError()) {
-							throw new JiraClientException(format("opprettJira feilet funksjonelt med feilmelding=%s", res.getStatusText()));
-						}
-						throw new JiraServerException(format("opprettJira feilet teknisk med feilmelding=%s", res.getStatusText()));
-					}
-					return deserialize(res.getBody(), Project.class);
-				});
+			HttpResponse<Project> response = httpClient.sendAsync(httpRequest, new JsonBodyHandler<>(Project.class)).get();
+
+			if (response.statusCode() != 200) {
+				throw new JiraClientException(format("hentProject feilet med status=%s, feilmelding=%s", response.statusCode(), response.headers()));
+			}
+			logger.info("Hentet project fra jira med projectId={} og status", response.body().name(), response.statusCode());
+			return response.body();
+
+		} catch (Exception e) {
+			logger.error("hentProject feilet funksjonelt med feilmelding={}", e.getStackTrace());
+			throw new JiraClientException(format("hentProject feilet funksjonelt med feilmelding=%s", e.getMessage()), e.getCause());
+		}
 	}
 
 	public Issue oppdaterJiraStatus(final String key) {
