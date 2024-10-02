@@ -15,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.ProxySelector;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -103,13 +102,13 @@ public class JiraClient {
 					.GET()
 					.build();
 
-			HttpResponse<Project> response = httpClient.sendAsync(httpRequest, new JsonBodyHandler<>(Project.class)).get();
+			HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
 
 			if (response.statusCode() != 200) {
 				throw new JiraClientException(format("hentProject feilet med status=%s, feilmelding=%s", response.statusCode(), response.headers()));
 			}
-			logger.info("Hentet project fra jira med projectId={} og status", response.body().name(), response.statusCode());
-			return response.body();
+			logger.info("Hentet project fra jira med status={}", response.statusCode());
+			return deserialize(response.body(), Project.class);
 
 		} catch (Exception e) {
 			logger.error("hentProject feilet funksjonelt med feilmelding={}", e.getStackTrace());
@@ -165,7 +164,7 @@ public class JiraClient {
 		}
 	}
 
-	private <T> T deserialize(InputStream jsonString, Class<T> tClass) {
+	private <T> T deserialize(String jsonString, Class<T> tClass) {
 		try {
 			ObjectMapper mapper = new ObjectMapper();
 			return mapper.readValue(jsonString, tClass);
