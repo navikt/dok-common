@@ -109,10 +109,9 @@ public class JiraClient {
 			}
 			logger.info("Hentet project fra jira med status={}", response.statusCode());
 			return deserialize(response.body(), Project.class);
-
 		} catch (Exception e) {
 			logger.error("hentProject feilet funksjonelt med feilmelding={}", e.getStackTrace());
-			throw new JiraClientException(format("hentProject feilet funksjonelt med feilmelding=%s", e.getMessage()), e.getCause());
+			throw new JiraClientException(format("hentProject feilet funksjonelt med feilmelding=%s", e.getMessage()), e);
 		}
 	}
 
