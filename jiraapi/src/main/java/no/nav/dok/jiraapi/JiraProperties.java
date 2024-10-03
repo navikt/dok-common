@@ -10,13 +10,13 @@ import lombok.Builder;
  */
 
 @Builder
-public record JiraProperties(JiraServieUser jiraServieUser, @NotEmpty String url) {
+public record JiraProperties(JiraServieUser jiraServieUser, @NotEmpty String url, Proxy proxy) {
 
 	/**
 	 * @param username applikasjonceller bruker jira brukernavn
 	 * @param password applikasjonen eller brukeren jira passord
 	 */
-	public record JiraServieUser(@NotEmpty String username, @NotEmpty String password) {
+	public record JiraServieUser(@NotEmpty String username, @NotEmpty String password) { }
 
-	}
+	public record Proxy(String host, int port) { }
 }

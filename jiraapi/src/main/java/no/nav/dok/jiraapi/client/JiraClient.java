@@ -13,6 +13,7 @@ import no.nav.dok.jiracore.interndomain.JiraTransition;
 import no.nav.dok.jiracore.interndomain.Project;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.ProxySelector;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -46,10 +47,11 @@ public class JiraClient {
 	private final JiraProperties jiraProperties;
 
 	public JiraClient(JiraProperties jiraProperties) {
+
 		this.jiraProperties = jiraProperties;
 
 		this.httpClient = HttpClient.newBuilder()
-				.proxy(ProxySelector.getDefault())
+				.proxy(ProxySelector.of(new InetSocketAddress(jiraProperties.proxy().host(), jiraProperties.proxy().port())))
 				.connectTimeout(Duration.ofSeconds(15))
 				.build();
 	}
