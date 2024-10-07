@@ -13,7 +13,6 @@ import no.nav.dok.jiracore.interndomain.JiraTransition;
 import no.nav.dok.jiracore.interndomain.Project;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.ProxySelector;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -51,7 +50,7 @@ public class JiraClient {
 		this.jiraProperties = jiraProperties;
 
 		this.httpClient = HttpClient.newBuilder()
-				.proxy(ProxySelector.of(new InetSocketAddress(jiraProperties.proxy().host(), jiraProperties.proxy().port())))
+				.proxy(ProxySelector.getDefault())
 				.connectTimeout(Duration.ofSeconds(15))
 				.build();
 	}
@@ -170,7 +169,7 @@ public class JiraClient {
 	}
 
 	private HttpRequest.Builder httpRequestBuilder() {
-		return  HttpRequest.newBuilder()
+		return HttpRequest.newBuilder()
 				.header(AUTHORIZATION, getBasicAuthenticationHeader())
 				.header("X-Atlassian-Token", "no-check");
 	}
