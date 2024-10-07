@@ -17,5 +17,4 @@ public record JiraProperties(JiraServieUser jiraServieUser, @NotEmpty String url
 	 */
 	public record JiraServieUser(@NotEmpty String username, @NotEmpty String password) {
 	}
-
 }

@@ -50,7 +50,6 @@ public class JiraClient {
 		this.jiraProperties = jiraProperties;
 
 		this.httpClient = HttpClient.newBuilder()
-				.proxy(ProxySelector.getDefault())
 				.connectTimeout(Duration.ofSeconds(15))
 				.build();
 	}
