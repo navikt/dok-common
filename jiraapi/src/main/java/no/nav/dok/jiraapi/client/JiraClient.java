@@ -13,7 +13,6 @@ import no.nav.dok.jiracore.interndomain.JiraTransition;
 import no.nav.dok.jiracore.interndomain.Project;
 
 import java.io.IOException;
-import java.net.ProxySelector;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -145,7 +144,8 @@ public class JiraClient {
 	}
 
 	private String getBasicAuthenticationHeader() {
-		String valueToEncode = jiraProperties.jiraServieUser().username() + ":" + jiraProperties.jiraServieUser().username();
+		String valueToEncode = jiraProperties.jiraServieUser().username() + ":" + jiraProperties.jiraServieUser().password();
+
 		return "Basic " + Base64.getEncoder().encodeToString(valueToEncode.getBytes());
 	}
 
