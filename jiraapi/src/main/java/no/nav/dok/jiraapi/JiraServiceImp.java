@@ -15,8 +15,6 @@ import static no.nav.dok.jiracore.config.JiraConstant.OK_STATUS_CODE;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public class JiraServiceImp implements JiraService {
-
-
 	private final JiraClient jiraClient;
 
 	public JiraServiceImp(JiraClient jiraClient) {
@@ -55,10 +53,9 @@ public class JiraServiceImp implements JiraService {
 		assertNull("file", jiraRequest.file());
 		jiraClient.leggTilVedlegg(issue.key(), jiraRequest);
 
-		Issue oppdatertIssue = jiraClient.oppdaterJiraStatus(issue.key());
+		jiraClient.oppdaterJiraStatus(issue.key());
 		return JiraResponse.builder().jiraIssueKey(issue.key())
 				.message(responseUrl(issue.self(), issue.key()))
-				.status(oppdatertIssue.status().name())
 				.httpStatusCode(OK_STATUS_CODE)
 				.build();
 	}
