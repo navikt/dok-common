@@ -11,13 +11,16 @@ import no.nav.dok.jiracore.interndomain.Issue;
 import no.nav.dok.jiracore.interndomain.IssueInput;
 import no.nav.dok.jiracore.interndomain.JiraTransition;
 import no.nav.dok.jiracore.interndomain.Project;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.net.ProxySelector;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Base64;
 
@@ -40,8 +43,11 @@ public class JiraClient {
 	public static String CONTENT_TYPE = "Content-Type";
 	public static final String AUTHORIZATION = "Authorization";
 	public static String APPLICATION_JSON = "application/json";
+	public static final String APPLICATION_OCTET_STREAM_VALUE = "application/octet-stream";
 	private final HttpClient httpClient;
 	private final JiraProperties jiraProperties;
+
+	Logger logger = LoggerFactory.getLogger(JiraClient.class);
 
 	public JiraClient(JiraProperties jiraProperties) {
 
@@ -71,6 +77,7 @@ public class JiraClient {
 			if (response.statusCode() != HTTP_CREATED) {
 				throw new JiraClientException(format("opprettJira feilet med status=%s", response.statusCode()));
 			}
+			logger.info("Opprettet jira oppgave med id={} og key={}", response.body().id(), response.body().key());
 			return response.body();
 		} catch (Exception e) {
 			throw new JiraClientException(format("opprettJira feilet med feilmelding=%s", e.getMessage()));
@@ -78,13 +85,15 @@ public class JiraClient {
 	}
 
 	public void leggTilVedlegg(String key, JiraRequest request) {
-		try {
+		try (InputStream inputFile = new FileInputStream(request.file())) {
 			HttpRequest httpRequest = httpRequestBuilder()
 					.uri(URI.create(jiraProperties.url() + ISSUE_PATH + "/" + key + ATTACHMENT))
-					.POST(HttpRequest.BodyPublishers.ofFile(Path.of(request.file().getPath())))
+					.POST(HttpRequest.BodyPublishers.ofInputStream(() -> inputFile))
 					.build();
-			httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+			HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+			logger.info("leggTilVedlegg vedlagt fil til oppgave key={} og status={} ", key, response.statusCode());
 		} catch (Exception e) {
+			logger.error("Kall mot leggTilVedlegg feilet med feilmelding={}", e.getMessage());
 			throw new JiraClientException(format("opprettJiraVedVedlegg feilet med feilmelding=%s", e.getMessage()), e.getCause());
 		}
 	}

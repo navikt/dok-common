@@ -50,12 +50,14 @@ public class JiraServiceImp implements JiraService {
 		Issue issue = jiraClient.opprettJira(jiraRequest);
 
 		assertNotNullOrEmpty("key", issue.key());
-		assertNull("file", jiraRequest.file());
+		assertNotNull("file", jiraRequest.file());
 		jiraClient.leggTilVedlegg(issue.key(), jiraRequest);
 
-		jiraClient.oppdaterJiraStatus(issue.key());
+		Issue oppdaterOppgave = jiraClient.oppdaterJiraStatus(issue.key());
+
 		return JiraResponse.builder().jiraIssueKey(issue.key())
 				.message(responseUrl(issue.self(), issue.key()))
+				.status(getStatus(oppdaterOppgave))
 				.httpStatusCode(OK_STATUS_CODE)
 				.build();
 	}
@@ -66,7 +68,7 @@ public class JiraServiceImp implements JiraService {
 		}
 	}
 
-	public static void assertNull(String field, Object value) {
+	public static void assertNotNull(String field, Object value) {
 		if (isNull(value)) {
 			throw new ValidationException(format("Feltet %s kan ikke være null eller tomt. Fikk %s=null", field, field));
 		}
@@ -75,5 +77,12 @@ public class JiraServiceImp implements JiraService {
 	private String responseUrl(String self, String key) {
 		URI uri = URI.create(self);
 		return "https://" + uri.getHost() + BROWSE + key;
+	}
+
+	private String getStatus(Issue issue) {
+		if (isNull(issue.fields()) || isNull(issue.fields().status())) {
+			return null;
+		}
+		return issue.fields().status().name();
 	}
 }
