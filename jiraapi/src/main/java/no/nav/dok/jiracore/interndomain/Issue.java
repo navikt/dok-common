@@ -11,13 +11,13 @@ public record Issue(
 		String key,
 		Fields fields) {
 
-	@JsonIgnoreProperties
+	@JsonIgnoreProperties(ignoreUnknown = true)
 	public record Fields(Status status, List<Attachment> attachment) {}
 
-	@JsonIgnoreProperties
+	@JsonIgnoreProperties(ignoreUnknown = true)
 	public record Status(String name) {}
 
-	@JsonIgnoreProperties
+	@JsonIgnoreProperties(ignoreUnknown = true)
 	public record Attachment(
 		 String id,
 		 String filename,
