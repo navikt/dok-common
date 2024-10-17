@@ -89,6 +89,7 @@ public class JiraClient {
 		try {
 			HttpRequest httpRequest = httpRequestBuilder()
 					.uri(URI.create(jiraProperties.url() + ISSUE_PATH + "/" + key + ATTACHMENT))
+					.header(CONTENT_TYPE, APPLICATION_OCTET_STREAM_VALUE)
 					.POST(HttpRequest.BodyPublishers.ofByteArray(convertFileToByteArray(request.file())))
 					.build();
 			HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
