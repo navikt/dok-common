@@ -14,5 +14,6 @@ public record JiraResponse(
 		String jiraIssueKey,
 		String message,
 		String status,
-		String httpStatusCode) {
+		String httpStatusCode,
+		int vedleggStatusCode) {
 }

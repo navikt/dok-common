@@ -51,7 +51,7 @@ public class JiraServiceImp implements JiraService {
 
 		assertNotNullOrEmpty("key", issue.key());
 		assertNotNull("file", jiraRequest.file());
-		jiraClient.leggTilVedlegg(issue.key(), jiraRequest);
+		int vedleggStatus = jiraClient.leggTilVedlegg(issue.id(), jiraRequest);
 
 		Issue oppdaterOppgave = jiraClient.oppdaterJiraStatus(issue.key());
 
@@ -59,6 +59,7 @@ public class JiraServiceImp implements JiraService {
 				.message(responseUrl(issue.self(), issue.key()))
 				.status(getStatus(oppdaterOppgave))
 				.httpStatusCode(OK_STATUS_CODE)
+				.vedleggStatusCode(vedleggStatus)
 				.build();
 	}
 

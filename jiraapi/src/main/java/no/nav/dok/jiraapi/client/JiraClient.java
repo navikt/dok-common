@@ -33,6 +33,7 @@ import static no.nav.dok.jiracore.config.JiraConstant.PROJECT_KEY;
 import static no.nav.dok.jiracore.config.JiraConstant.PROJECT_PATH;
 import static no.nav.dok.jiracore.config.JiraConstant.TRANSITION;
 import static no.nav.dok.jiracore.config.JiraConstant.TRANSITION_ID;
+import static no.nav.dok.jiracore.config.JiraMapper.convertFileToByteArray;
 
 /**
  * Jira api client bruker Java HttpClient til å gjøre kall mot jira
@@ -84,14 +85,15 @@ public class JiraClient {
 		}
 	}
 
-	public void leggTilVedlegg(String key, JiraRequest request) {
-		try (InputStream inputFile = new FileInputStream(request.file())) {
+	public int leggTilVedlegg(String key, JiraRequest request) {
+		try {
 			HttpRequest httpRequest = httpRequestBuilder()
 					.uri(URI.create(jiraProperties.url() + ISSUE_PATH + "/" + key + ATTACHMENT))
-					.POST(HttpRequest.BodyPublishers.ofInputStream(() -> inputFile))
+					.POST(HttpRequest.BodyPublishers.ofByteArray(convertFileToByteArray(request.file())))
 					.build();
 			HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
 			logger.info("leggTilVedlegg vedlagt fil til oppgave key={} og status={} ", key, response.statusCode());
+			return response.statusCode();
 		} catch (Exception e) {
 			logger.error("Kall mot leggTilVedlegg feilet med feilmelding={}", e.getMessage());
 			throw new JiraClientException(format("opprettJiraVedVedlegg feilet med feilmelding=%s", e.getMessage()), e.getCause());
