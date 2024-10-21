@@ -11,13 +11,15 @@ import no.nav.dok.jiracore.interndomain.Issue;
 import no.nav.dok.jiracore.interndomain.IssueInput;
 import no.nav.dok.jiracore.interndomain.JiraTransition;
 import no.nav.dok.jiracore.interndomain.Project;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.client.MultipartBodyBuilder;
+import org.springframework.web.client.RestClient;
 
 import java.net.ProxySelector;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Base64;
 
@@ -30,6 +32,10 @@ import static no.nav.dok.jiracore.config.JiraConstant.PROJECT_KEY;
 import static no.nav.dok.jiracore.config.JiraConstant.PROJECT_PATH;
 import static no.nav.dok.jiracore.config.JiraConstant.TRANSITION;
 import static no.nav.dok.jiracore.config.JiraConstant.TRANSITION_ID;
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
+import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
 /**
  * Jira api client bruker Java HttpClient til å gjøre kall mot jira
@@ -37,10 +43,8 @@ import static no.nav.dok.jiracore.config.JiraConstant.TRANSITION_ID;
 
 public class JiraClient {
 
-	public static String CONTENT_TYPE = "Content-Type";
-	public static final String AUTHORIZATION = "Authorization";
-	public static String APPLICATION_JSON = "application/json";
 	private final HttpClient httpClient;
+	private final RestClient restClient;
 	private final JiraProperties jiraProperties;
 
 	public JiraClient(JiraProperties jiraProperties) {
@@ -51,18 +55,25 @@ public class JiraClient {
 				.proxy(ProxySelector.getDefault())
 				.connectTimeout(Duration.ofSeconds(15))
 				.build();
+
+		this.restClient = RestClient.builder()
+				.baseUrl(jiraProperties.url())
+				.defaultHeaders(httpHeaders -> {
+					httpHeaders.setBasicAuth(jiraProperties.jiraServieUser().username(), jiraProperties.jiraServieUser().password());
+					httpHeaders.set("X-Atlassian-Token", "no-check");
+				})
+				.build();
 	}
 
 	public Issue opprettJira(JiraRequest request) {
 		Project project = hentProject();
 		IssueInput issueInput = JiraMapper.map(request, project);
-
 		try {
 			String issueInputAsString = serialize(issueInput);
 
 			HttpRequest httpRequest = httpRequestBuilder()
 					.uri(URI.create(jiraProperties.url() + ISSUE_PATH))
-					.header(CONTENT_TYPE, APPLICATION_JSON)
+					.header(CONTENT_TYPE, APPLICATION_JSON_VALUE)
 					.POST(HttpRequest.BodyPublishers.ofString(issueInputAsString))
 					.build();
 
@@ -77,23 +88,27 @@ public class JiraClient {
 		}
 	}
 
-	public void leggTilVedlegg(String key, JiraRequest request) {
-		try {
-			HttpRequest httpRequest = httpRequestBuilder()
-					.uri(URI.create(jiraProperties.url() + ISSUE_PATH + "/" + key + ATTACHMENT))
-					.POST(HttpRequest.BodyPublishers.ofFile(Path.of(request.file().getPath())))
-					.build();
-			httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-		} catch (Exception e) {
-			throw new JiraClientException(format("opprettJiraVedVedlegg feilet med feilmelding=%s", e.getMessage()), e.getCause());
-		}
+	public int leggTilVedlegg(String key, JiraRequest request) {
+		MultipartBodyBuilder multipartBodyBuilder = new MultipartBodyBuilder();
+		multipartBodyBuilder.part("file", new FileSystemResource(request.file()));
+		return restClient.post()
+				.uri(uriBuilder -> uriBuilder.path(ISSUE_PATH + "/" + key + ATTACHMENT)
+						.build())
+				.header(CONTENT_TYPE, MULTIPART_FORM_DATA_VALUE)
+				.body(multipartBodyBuilder.build())
+				.exchange((req, res) -> {
+					if (!res.getStatusCode().is2xxSuccessful()) {
+						throw new JiraClientException(format("leggTilVedlegg feilet med feilmelding=%s og status=%s", res.getBody(), res.getStatusCode()));
+					}
+					return res.getStatusCode().value();
+				});
 	}
 
 	private Project hentProject() {
 		try {
 			HttpRequest httpRequest = httpRequestBuilder()
 					.uri(URI.create(jiraProperties.url() + PROJECT_PATH + PROJECT_KEY))
-					.header(CONTENT_TYPE, APPLICATION_JSON)
+					.header(CONTENT_TYPE, APPLICATION_JSON_VALUE)
 					.timeout(Duration.ofSeconds(30))
 					.GET()
 					.build();
@@ -112,9 +127,8 @@ public class JiraClient {
 	public Issue oppdaterJiraStatus(final String key) {
 		try {
 			JiraTransition transition = new JiraTransition(new JiraTransition.Transition(TRANSITION_ID));
-			HttpRequest httpRequest = HttpRequest.newBuilder(URI.create(jiraProperties.url() + ISSUE_PATH + "/" + key + TRANSITION))
-					.header(CONTENT_TYPE, APPLICATION_JSON)
-					.header(AUTHORIZATION, getBasicAuthenticationHeader())
+			HttpRequest httpRequest = httpRequestBuilder().uri(URI.create(jiraProperties.url() + ISSUE_PATH + "/" + key + TRANSITION))
+					.header(CONTENT_TYPE, APPLICATION_JSON_VALUE)
 					.POST(HttpRequest.BodyPublishers.ofString(serialize(transition)))
 					.build();
 			httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
@@ -127,9 +141,8 @@ public class JiraClient {
 	}
 
 	private Issue hentIssue(final String key) {
-		HttpRequest httpRequest = HttpRequest.newBuilder(URI.create(jiraProperties.url() + ISSUE_PATH + "/" + key))
-				.header(CONTENT_TYPE, APPLICATION_JSON)
-				.header(AUTHORIZATION, getBasicAuthenticationHeader())
+		HttpRequest httpRequest = httpRequestBuilder().uri(URI.create(jiraProperties.url() + ISSUE_PATH + "/" + key))
+				.header(CONTENT_TYPE, APPLICATION_JSON_VALUE)
 				.GET()
 				.build();
 		try {
