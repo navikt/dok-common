@@ -59,7 +59,7 @@ public class JiraClient {
 		this.restClient = RestClient.builder()
 				.baseUrl(jiraProperties.url())
 				.defaultHeaders(httpHeaders -> {
-					httpHeaders.setBasicAuth(jiraProperties.jiraServieUser().username(), jiraProperties.jiraServieUser().password());
+					httpHeaders.setBasicAuth(jiraProperties.jiraServiceUser().username(), jiraProperties.jiraServiceUser().password());
 					httpHeaders.set("X-Atlassian-Token", "no-check");
 				})
 				.build();
@@ -157,7 +157,7 @@ public class JiraClient {
 	}
 
 	private String getBasicAuthenticationHeader() {
-		String valueToEncode = jiraProperties.jiraServieUser().username() + ":" + jiraProperties.jiraServieUser().password();
+		String valueToEncode = jiraProperties.jiraServiceUser().username() + ":" + jiraProperties.jiraServiceUser().password();
 		return "Basic " + Base64.getEncoder().encodeToString(valueToEncode.getBytes());
 	}
 
