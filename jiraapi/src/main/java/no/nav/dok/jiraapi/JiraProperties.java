@@ -16,6 +16,5 @@ public record JiraProperties(JiraServiceUser jiraServiceUser, @NotEmpty String u
 	 * @param password applikasjonen eller brukeren jira passord
 	 */
 	public record JiraServiceUser(@NotEmpty String username, @NotEmpty String password) {
-
 	}
 }
