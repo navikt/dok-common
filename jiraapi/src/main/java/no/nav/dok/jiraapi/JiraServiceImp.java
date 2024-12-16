@@ -38,7 +38,7 @@ public class JiraServiceImp implements JiraService {
 	 * @return metoden opprette jira oppgave ved vedlegg og returnerer jira key, melding og httpstatus
 	 */
 	@Override
-	public JiraResponse opprettJiraOppgaveVedVedlegg(JiraRequest jiraRequest) {
+	public JiraResponse opprettJiraOppgaveMedVedlegg(JiraRequest jiraRequest) {
 
 		if (nonNull(jiraRequest) && !jiraRequest.file().exists()) {
 			return JiraResponse.builder()

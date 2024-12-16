@@ -4,5 +4,5 @@ public interface JiraService {
 
 	JiraResponse opprettJiraOppgave(JiraRequest jiraRequest);
 
-	JiraResponse opprettJiraOppgaveVedVedlegg(JiraRequest jiraRequest);
+	JiraResponse opprettJiraOppgaveMedVedlegg(JiraRequest jiraRequest);
 }
