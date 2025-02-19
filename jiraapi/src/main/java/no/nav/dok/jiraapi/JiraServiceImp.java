@@ -2,9 +2,15 @@ package no.nav.dok.jiraapi;
 
 import jakarta.validation.ValidationException;
 import no.nav.dok.jiraapi.client.JiraClient;
+import no.nav.dok.jiracore.exception.IkkeFinneJiraFilException;
 import no.nav.dok.jiracore.interndomain.Issue;
+import no.nav.dok.jiracore.interndomain.JiraInternRequest;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.URI;
+import java.time.LocalDate;
 
 import static java.lang.String.format;
 import static java.util.Objects.isNull;
@@ -23,7 +29,9 @@ public class JiraServiceImp implements JiraService {
 
 	@Override
 	public JiraResponse opprettJiraOppgave(JiraRequest jiraRequest) {
-		Issue issue = jiraClient.opprettJira(jiraRequest);
+		JiraInternRequest jiraInternRequest = mapJiraRequest(jiraRequest);
+
+		Issue issue = jiraClient.opprettJira(jiraInternRequest);
 
 		jiraClient.oppdaterJiraStatus(issue.key());
 
@@ -34,24 +42,26 @@ public class JiraServiceImp implements JiraService {
 	}
 
 	/**
-	 * @param jiraRequest jira requesten som bruker til å opprette jira sak.
+	 * @param jiraRequest jira requesten mapper JiraInternRequest og requesten bruker til å opprette jira sak.
 	 * @return metoden opprette jira oppgave ved vedlegg og returnerer jira key, melding og httpstatus
 	 */
 	@Override
 	public JiraResponse opprettJiraOppgaveMedVedlegg(JiraRequest jiraRequest) {
 
-		if (nonNull(jiraRequest) && !jiraRequest.file().exists()) {
+		JiraInternRequest jiraInternRequest = mapJiraRequest(jiraRequest);
+
+		if (nonNull(jiraInternRequest) && !jiraInternRequest.vedlegg().exists()) {
 			return JiraResponse.builder()
 					.message("Kan ikke opprette Jira-sak. Fant ingen vedlegg fil")
 					.httpStatusCode(NO_CONTENT_STATUS_CODE)
 					.build();
 		}
 
-		Issue issue = jiraClient.opprettJira(jiraRequest);
+		Issue issue = jiraClient.opprettJira(jiraInternRequest);
 
 		assertNotNullOrEmpty("key", issue.key());
-		assertNotNull("file", jiraRequest.file());
-		jiraClient.leggTilVedlegg(issue.key(), jiraRequest);
+		assertNotNull("file", jiraInternRequest.vedlegg());
+		jiraClient.leggTilVedlegg(issue.key(), jiraInternRequest);
 
 		Issue oppdaterOppgave = jiraClient.oppdaterJiraStatus(issue.key());
 
@@ -60,6 +70,29 @@ public class JiraServiceImp implements JiraService {
 				.status(getStatus(oppdaterOppgave))
 				.httpStatusCode(OK_STATUS_CODE)
 				.build();
+	}
+
+	private JiraInternRequest mapJiraRequest(JiraRequest jiraRequest) {
+		File vedleggFil = jiraRequest.vedlegg() == null ? null : createFile(jiraRequest.vedlegg(), jiraRequest.avstemmingsfilDato());
+		return JiraInternRequest.builder()
+				.reporterName(jiraRequest.reporterName())
+				.description(jiraRequest.description())
+				.summary(jiraRequest.summary())
+				.vedlegg(vedleggFil)
+				.labels(jiraRequest.labels())
+				.build();
+	}
+
+	private File createFile(byte[] csvByte, LocalDate avstemmingsfilDato) {
+		try {
+			File tempFile = File.createTempFile("skanmotreferansenr-feilende-avstemming-" + avstemmingsfilDato, ".csv");
+			try (FileOutputStream fs = new FileOutputStream(tempFile)) {
+				fs.write(csvByte);
+			}
+			return tempFile;
+		} catch (IOException ex) {
+			throw new IkkeFinneJiraFilException("I/O feil med feilmelding=" + ex.getMessage(), ex);
+		}
 	}
 
 	public static void assertNotNullOrEmpty(String field, String value) {
