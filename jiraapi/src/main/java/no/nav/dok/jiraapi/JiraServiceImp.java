@@ -86,8 +86,9 @@ public class JiraServiceImp implements JiraService {
 	private File createFile(byte[] csvByte, LocalDate avstemmingsfilDato) {
 		try {
 			File tempFile = File.createTempFile("skanmotreferansenr-feilende-avstemming-" + avstemmingsfilDato, ".csv");
-			FileOutputStream fs = new FileOutputStream(tempFile);
-			fs.write(csvByte);
+			try (FileOutputStream fs = new FileOutputStream(tempFile)) {
+				fs.write(csvByte);
+			}
 			return tempFile;
 		} catch (IOException ex) {
 			throw new IkkeFinneJiraFilException("I/O feil med feilmelding=" + ex.getMessage(), ex);
