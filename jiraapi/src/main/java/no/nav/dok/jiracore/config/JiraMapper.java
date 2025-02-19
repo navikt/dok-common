@@ -1,21 +1,21 @@
 package no.nav.dok.jiracore.config;
 
-import no.nav.dok.jiraapi.JiraRequest;
 import no.nav.dok.jiracore.interndomain.BasicInputFields;
 import no.nav.dok.jiracore.interndomain.IssueInput;
 import no.nav.dok.jiracore.interndomain.IssueType;
+import no.nav.dok.jiracore.interndomain.JiraInternRequest;
 import no.nav.dok.jiracore.interndomain.Project;
 import no.nav.dok.jiracore.interndomain.Reporter;
 
 import static no.nav.dok.jiracore.config.JiraConstant.ISSUE_TYPE_OPPGAVE;
 
 /**
- *  JiraMapper strukturt til å tilpasse jira interndomain
+ * JiraMapper strukturt til å tilpasse jira interndomain
  */
 public class JiraMapper {
-	public static IssueInput map(JiraRequest jiraRequest, Project project) {
+	public static IssueInput map(JiraInternRequest jiraInternRequest, Project project) {
 
-		Reporter reporter = new Reporter(null, jiraRequest.reporterName(), null);
+		Reporter reporter = new Reporter(null, jiraInternRequest.reporterName(), null);
 
 		Project newProject = Project.builder()
 				.key(project.key())
@@ -30,10 +30,10 @@ public class JiraMapper {
 		BasicInputFields basicInputFields = BasicInputFields.builder()
 				.project(newProject)
 				.issuetype(newIssueType)
-				.summary(jiraRequest.summary())
+				.summary(jiraInternRequest.summary())
 				.reporter(reporter)
-				.description(jiraRequest.description())
-				.labels(jiraRequest.labels().toArray(String[]::new))
+				.description(jiraInternRequest.description())
+				.labels(jiraInternRequest.labels().toArray(String[]::new))
 				.build();
 
 		return new IssueInput(basicInputFields);

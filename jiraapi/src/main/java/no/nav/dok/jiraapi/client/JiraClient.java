@@ -3,12 +3,12 @@ package no.nav.dok.jiraapi.client;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import no.nav.dok.jiraapi.JiraProperties;
-import no.nav.dok.jiraapi.JiraRequest;
 import no.nav.dok.jiracore.config.JiraMapper;
 import no.nav.dok.jiracore.config.JsonBodyHandler;
 import no.nav.dok.jiracore.exception.JiraClientException;
 import no.nav.dok.jiracore.interndomain.Issue;
 import no.nav.dok.jiracore.interndomain.IssueInput;
+import no.nav.dok.jiracore.interndomain.JiraInternRequest;
 import no.nav.dok.jiracore.interndomain.JiraTransition;
 import no.nav.dok.jiracore.interndomain.Project;
 import org.springframework.core.io.FileSystemResource;
@@ -65,7 +65,7 @@ public class JiraClient {
 				.build();
 	}
 
-	public Issue opprettJira(JiraRequest request) {
+	public Issue opprettJira(JiraInternRequest request) {
 		Project project = hentProject();
 		IssueInput issueInput = JiraMapper.map(request, project);
 		try {
@@ -88,9 +88,9 @@ public class JiraClient {
 		}
 	}
 
-	public int leggTilVedlegg(String key, JiraRequest request) {
+	public int leggTilVedlegg(String key, JiraInternRequest request) {
 		MultipartBodyBuilder multipartBodyBuilder = new MultipartBodyBuilder();
-		multipartBodyBuilder.part("file", new FileSystemResource(request.file()));
+		multipartBodyBuilder.part("file", new FileSystemResource(request.vedlegg()));
 		return restClient.post()
 				.uri(uriBuilder -> uriBuilder.path(ISSUE_PATH + "/" + key + ATTACHMENT)
 						.build())

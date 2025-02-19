@@ -1,9 +1,9 @@
-package no.nav.dok.jiraapi;
+package no.nav.dok.jiracore.interndomain;
 
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Builder;
 
-import java.time.LocalDate;
+import java.io.File;
 import java.util.List;
 
 /**
@@ -11,15 +11,14 @@ import java.util.List;
  * @param description  detailert jira-saken beskrivelse
  * @param summary      sammendrag eller tittle for jira-saken
  * @param labels
- * @param vedlegg      byte data som kan legge til jira-saken
+ * @param vedlegg      vedlegg fil som kan legge til jira-saken
  */
 
 @Builder
-public record JiraRequest(
+public record JiraInternRequest(
 		@NotEmpty String reporterName,
 		@NotEmpty String description,
 		@NotEmpty String summary,
 		List<String> labels,
-		byte[] vedlegg,
-		LocalDate avstemmingsfilDato) {
+		File vedlegg) {
 }
