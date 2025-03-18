@@ -73,7 +73,7 @@ public class JiraServiceImp implements JiraService {
 	}
 
 	private JiraInternRequest mapJiraRequest(JiraRequest jiraRequest) {
-		File vedleggFil = jiraRequest.vedlegg() == null ? null : createFile(jiraRequest.vedlegg(), jiraRequest.avstemmingsfilDato());
+		File vedleggFil = jiraRequest.vedlegg() == null ? null : createFile(jiraRequest.vedlegg(), jiraRequest.labels().getFirst(), jiraRequest.avstemmingsfilDato());
 		return JiraInternRequest.builder()
 				.reporterName(jiraRequest.reporterName())
 				.description(jiraRequest.description())
@@ -83,9 +83,9 @@ public class JiraServiceImp implements JiraService {
 				.build();
 	}
 
-	private File createFile(byte[] csvByte, LocalDate avstemmingsfilDato) {
+	private File createFile(byte[] csvByte, String filnavn, LocalDate avstemmingsfilDato) {
 		try {
-			File tempFile = File.createTempFile("skanmotreferansenr-feilende-avstemming-" + avstemmingsfilDato, ".csv");
+			File tempFile = File.createTempFile(filnavn + "-" + avstemmingsfilDato, ".csv");
 			try (FileOutputStream fs = new FileOutputStream(tempFile)) {
 				fs.write(csvByte);
 			}
