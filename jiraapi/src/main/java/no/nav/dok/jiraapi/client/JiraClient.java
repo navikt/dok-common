@@ -8,6 +8,7 @@ import no.nav.dok.jiracore.config.JsonBodyHandler;
 import no.nav.dok.jiracore.exception.JiraClientException;
 import no.nav.dok.jiracore.interndomain.Issue;
 import no.nav.dok.jiracore.interndomain.IssueInput;
+import no.nav.dok.jiracore.interndomain.IssueType;
 import no.nav.dok.jiracore.interndomain.JiraInternRequest;
 import no.nav.dok.jiracore.interndomain.JiraTransition;
 import no.nav.dok.jiracore.interndomain.Project;
@@ -22,13 +23,15 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Base64;
+import java.util.function.Predicate;
 
 import static java.lang.String.format;
 import static java.net.HttpURLConnection.HTTP_CREATED;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static no.nav.dok.jiracore.config.JiraConstant.ATTACHMENT;
 import static no.nav.dok.jiracore.config.JiraConstant.ISSUE_PATH;
-import static no.nav.dok.jiracore.config.JiraConstant.PROJECT_KEY;
+import static no.nav.dok.jiracore.config.JiraConstant.ISSUE_TYPE_OPPGAVE;
+import static no.nav.dok.jiracore.config.JiraConstant.PROJECT_KEY_TDH;
 import static no.nav.dok.jiracore.config.JiraConstant.PROJECT_PATH;
 import static no.nav.dok.jiracore.config.JiraConstant.TRANSITION;
 import static no.nav.dok.jiracore.config.JiraConstant.TRANSITION_ID;
@@ -65,9 +68,25 @@ public class JiraClient {
 				.build();
 	}
 
+	public Issue opprettMMAOppgaveJira(JiraInternRequest request) {
+		return opprettJira(request, PROJECT_KEY_TDH, issueType -> ISSUE_TYPE_OPPGAVE.equals(issueType.name()));
+	}
+
+	/**
+	 * Opprett et Issue i MMA-prosjektet med type Oppgave
+	 *
+	 * @param request en request med de nødvendige feltene
+	 * @return det nye issuet
+	 * @deprecated Erstattes med opprettMMAOppgaveJira med klarere navngivning
+	 */
+	@Deprecated(forRemoval = true)
 	public Issue opprettJira(JiraInternRequest request) {
-		Project project = hentProject();
-		IssueInput issueInput = JiraMapper.map(request, project);
+		return opprettJira(request, PROJECT_KEY_TDH, issueType -> ISSUE_TYPE_OPPGAVE.equals(issueType.name()));
+	}
+
+	public Issue opprettJira(JiraInternRequest request, String projectKey, Predicate<IssueType> issueTypePredicate) {
+		Project project = hentProject(projectKey);
+		IssueInput issueInput = JiraMapper.map(request, project, issueTypePredicate);
 		try {
 			String issueInputAsString = serialize(issueInput);
 
@@ -104,10 +123,10 @@ public class JiraClient {
 				});
 	}
 
-	private Project hentProject() {
+	private Project hentProject(String projectKey) {
 		try {
 			HttpRequest httpRequest = httpRequestBuilder()
-					.uri(URI.create(jiraProperties.url() + PROJECT_PATH + PROJECT_KEY))
+					.uri(URI.create(jiraProperties.url() + PROJECT_PATH + projectKey))
 					.header(CONTENT_TYPE, APPLICATION_JSON_VALUE)
 					.timeout(Duration.ofSeconds(30))
 					.GET()
