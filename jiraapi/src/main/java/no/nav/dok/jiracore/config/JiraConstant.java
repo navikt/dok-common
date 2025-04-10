@@ -7,7 +7,7 @@ public class JiraConstant {
 	public static final String ISSUE_TYPE_OPPGAVE = "Oppgave";
 	public static final String ATTACHMENT = "/attachments";
 	public static final String TRANSITION = "/transitions";
-	public static final String PROJECT_KEY = "MMA";
+	public static final String PROJECT_KEY_TDH = "MMA";
 	public static final String TRANSITION_ID = "121";
 	public static final String BROWSE = "/browse/";
 

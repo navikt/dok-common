@@ -31,7 +31,7 @@ public class JiraServiceImp implements JiraService {
 	public JiraResponse opprettJiraOppgave(JiraRequest jiraRequest) {
 		JiraInternRequest jiraInternRequest = mapJiraRequest(jiraRequest);
 
-		Issue issue = jiraClient.opprettJira(jiraInternRequest);
+		Issue issue = jiraClient.opprettMMAOppgaveJira(jiraInternRequest);
 
 		jiraClient.oppdaterJiraStatus(issue.key());
 
@@ -57,7 +57,7 @@ public class JiraServiceImp implements JiraService {
 					.build();
 		}
 
-		Issue issue = jiraClient.opprettJira(jiraInternRequest);
+		Issue issue = jiraClient.opprettMMAOppgaveJira(jiraInternRequest);
 
 		assertNotNullOrEmpty("key", issue.key());
 		assertNotNull("file", jiraInternRequest.vedlegg());
