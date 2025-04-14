@@ -7,4 +7,5 @@ module jiraapi {
 	requires spring.web;
 	requires spring.core;
 	exports no.nav.dok.jiraapi;
+	exports no.nav.dok.jiracore.interndomain;
 }

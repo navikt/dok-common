@@ -23,11 +23,13 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Base64;
+import java.util.Map;
 import java.util.function.Predicate;
 
 import static java.lang.String.format;
 import static java.net.HttpURLConnection.HTTP_CREATED;
 import static java.net.HttpURLConnection.HTTP_OK;
+import static java.util.Collections.emptyMap;
 import static no.nav.dok.jiracore.config.JiraConstant.ATTACHMENT;
 import static no.nav.dok.jiracore.config.JiraConstant.ISSUE_PATH;
 import static no.nav.dok.jiracore.config.JiraConstant.ISSUE_TYPE_OPPGAVE;
@@ -69,7 +71,7 @@ public class JiraClient {
 	}
 
 	public Issue opprettMMAOppgaveJira(JiraInternRequest request) {
-		return opprettJira(request, PROJECT_KEY_TDH, issueType -> ISSUE_TYPE_OPPGAVE.equals(issueType.name()));
+		return opprettJira(request, PROJECT_KEY_TDH, issueType -> ISSUE_TYPE_OPPGAVE.equals(issueType.name()), emptyMap());
 	}
 
 	/**
@@ -81,12 +83,12 @@ public class JiraClient {
 	 */
 	@Deprecated(forRemoval = true)
 	public Issue opprettJira(JiraInternRequest request) {
-		return opprettJira(request, PROJECT_KEY_TDH, issueType -> ISSUE_TYPE_OPPGAVE.equals(issueType.name()));
+		return opprettJira(request, PROJECT_KEY_TDH, issueType -> ISSUE_TYPE_OPPGAVE.equals(issueType.name()), emptyMap());
 	}
 
-	public Issue opprettJira(JiraInternRequest request, String projectKey, Predicate<IssueType> issueTypePredicate) {
+	public Issue opprettJira(JiraInternRequest request, String projectKey, Predicate<IssueType> issueTypePredicate, Map<String,Object> extraProperties) {
 		Project project = hentProject(projectKey);
-		IssueInput issueInput = JiraMapper.map(request, project, issueTypePredicate);
+		IssueInput issueInput = JiraMapper.map(request, project, issueTypePredicate, extraProperties);
 		try {
 			String issueInputAsString = serialize(issueInput);
 
