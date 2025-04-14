@@ -7,13 +7,14 @@ import no.nav.dok.jiracore.interndomain.JiraInternRequest;
 import no.nav.dok.jiracore.interndomain.Project;
 import no.nav.dok.jiracore.interndomain.Reporter;
 
+import java.util.Map;
 import java.util.function.Predicate;
 
 /**
  * JiraMapper strukturt til å tilpasse jira interndomain
  */
 public class JiraMapper {
-	public static IssueInput map(JiraInternRequest jiraInternRequest, Project project, Predicate<IssueType> issueTypePredicate) {
+	public static IssueInput map(JiraInternRequest jiraInternRequest, Project project, Predicate<IssueType> issueTypePredicate, Map<String, Object> extraProperties) {
 
 		Reporter reporter = new Reporter(null, jiraInternRequest.reporterName(), null);
 
@@ -34,6 +35,7 @@ public class JiraMapper {
 				.reporter(reporter)
 				.description(jiraInternRequest.description())
 				.labels(jiraInternRequest.labels().toArray(String[]::new))
+				.customProperties(extraProperties)
 				.build();
 
 		return new IssueInput(basicInputFields);
