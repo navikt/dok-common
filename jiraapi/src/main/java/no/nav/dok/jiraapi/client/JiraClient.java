@@ -1,5 +1,6 @@
 package no.nav.dok.jiraapi.client;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import no.nav.dok.jiraapi.JiraProperties;
@@ -16,6 +17,7 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.web.client.RestClient;
 
+import java.io.IOException;
 import java.net.ProxySelector;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -51,10 +53,12 @@ public class JiraClient {
 	private final HttpClient httpClient;
 	private final RestClient restClient;
 	private final JiraProperties jiraProperties;
+	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	public JiraClient(JiraProperties jiraProperties) {
 
 		this.jiraProperties = jiraProperties;
+		objectMapper.configure(JsonGenerator.Feature.IGNORE_UNKNOWN, true);
 
 		this.httpClient = HttpClient.newBuilder()
 				.proxy(ProxySelector.getDefault())
@@ -98,15 +102,19 @@ public class JiraClient {
 					.POST(HttpRequest.BodyPublishers.ofString(issueInputAsString))
 					.build();
 
-			HttpResponse<Issue> response = httpClient.send(httpRequest, new JsonBodyHandler<>(Issue.class));
+			HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
 
 			if (response.statusCode() != HTTP_CREATED) {
-				throw new JiraClientException(format("opprettJira feilet med status=%s", response.statusCode()));
+				throw new JiraClientException(format("opprettJira feilet med status=%s feilmelding=%s", response.statusCode(), response.body()));
 			}
-			return response.body();
-		} catch (Exception e) {
-			throw new JiraClientException(format("opprettJira feilet med feilmelding=%s", e.getMessage()));
+			return objectMapper.readValue(response.body(), Issue.class);
+		} catch (IOException | InterruptedException e) {
+			throw new JiraClientException(format("opprettJira feilet med feilmelding=%s", e.getMessage()), e);
 		}
+	}
+
+	private static JsonBodyHandler<Issue> getResponseBodyHandler() {
+		return new JsonBodyHandler<>(Issue.class);
 	}
 
 	public int leggTilVedlegg(String key, JiraInternRequest request) {
@@ -172,7 +180,7 @@ public class JiraClient {
 				throw new JiraClientException(format("hentIssue feilet med status=%s, feilmelding=%s", response.statusCode(), response.headers()));
 			}
 			return response.body();
-		} catch (Exception e) {
+		} catch (IOException | InterruptedException e) {
 			throw new JiraClientException(format("hentIssue feilet med feilmelding=%s", e.getMessage()), e.getCause());
 		}
 	}
