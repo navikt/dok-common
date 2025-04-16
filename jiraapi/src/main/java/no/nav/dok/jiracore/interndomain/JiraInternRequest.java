@@ -16,7 +16,7 @@ import java.util.List;
 
 @Builder
 public record JiraInternRequest(
-		@NotEmpty String reporterName,
+		String reporterName,
 		@NotEmpty String description,
 		@NotEmpty String summary,
 		List<String> labels,
