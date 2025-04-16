@@ -12,7 +12,6 @@ public record BasicInputFields(
 		Project project,
 		String summary,
 		IssueType issuetype,
-		Reporter reporter,
 		String description,
 		String[] labels
 

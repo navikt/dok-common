@@ -7,6 +7,7 @@ import no.nav.dok.jiracore.interndomain.JiraInternRequest;
 import no.nav.dok.jiracore.interndomain.Project;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,9 +31,9 @@ class JiraMapperTest {
 				.build();
 
 		var mappedJiraRequest = JiraMapper.map(jiraInternRequest, project, x -> true,
-		Map.of("customprop_1", "Custom property 1",
+		new HashMap<>(Map.of("customprop_1", "Custom property 1",
 				"customprop_2", "Custom property 2",
-				"customprop_3", Map.of("id", "id", "key", "key")));
+				"customprop_3", Map.of("id", "id", "key", "key"))));
 
 		var objectMapper = new ObjectMapper();
 		String mappedJson = objectMapper.writeValueAsString(mappedJiraRequest);
@@ -43,5 +44,30 @@ class JiraMapperTest {
 				"\"customprop_1\":\"Custom property 1\"",
 				"\"customprop_2\":\"Custom property 2\"",
 				"\"customprop_3\":{");
+	}
+
+	@Test
+	void mapAndSerializeWithExtraPropertiesNoReporter() throws JsonProcessingException {
+		JiraInternRequest jiraInternRequest = JiraInternRequest.builder()
+				.description("description")
+				.reporterName(null)
+				.summary("an issue must be resolved")
+				.labels(emptyList())
+				.build();
+		Project project = Project.builder()
+				.name("project")
+				.key("PRO")
+				.issueTypes(List.of(new IssueType("self", "issu", "a type of issue", "ISSUEEEE", false)))
+				.build();
+
+		var mappedJiraRequest = JiraMapper.map(jiraInternRequest, project, x -> true,
+				Map.of("customprop_1", "Custom property 1",
+						"customprop_2", "Custom property 2",
+						"customprop_3", Map.of("id", "id", "key", "key")));
+
+		var objectMapper = new ObjectMapper();
+		String mappedJson = objectMapper.writeValueAsString(mappedJiraRequest);
+
+		assertThat(mappedJson).doesNotContain("reporter");
 	}
 }
