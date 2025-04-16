@@ -18,6 +18,7 @@ public class JiraMapper {
 	public static IssueInput map(JiraInternRequest jiraInternRequest, Project project, Predicate<IssueType> issueTypePredicate, Map<String, Object> extraProperties) {
 
 		Optional<Reporter> reporter = Optional.ofNullable(jiraInternRequest.reporterName()).map(name -> new Reporter(null, name, null));
+		reporter.ifPresent(reporter1 -> extraProperties.put("reporter", reporter1));
 
 		Project newProject = Project.builder()
 				.key(project.key())
@@ -33,7 +34,7 @@ public class JiraMapper {
 				.project(newProject)
 				.issuetype(newIssueType)
 				.summary(jiraInternRequest.summary())
-				.reporter(reporter.orElse(null))
+				// .reporter(reporter.orElse(null))
 				.description(jiraInternRequest.description())
 				.labels(jiraInternRequest.labels().toArray(String[]::new))
 				.customProperties(extraProperties)
