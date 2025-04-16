@@ -8,6 +8,7 @@ import no.nav.dok.jiracore.interndomain.Project;
 import no.nav.dok.jiracore.interndomain.Reporter;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 /**
@@ -16,7 +17,7 @@ import java.util.function.Predicate;
 public class JiraMapper {
 	public static IssueInput map(JiraInternRequest jiraInternRequest, Project project, Predicate<IssueType> issueTypePredicate, Map<String, Object> extraProperties) {
 
-		Reporter reporter = new Reporter(null, jiraInternRequest.reporterName(), null);
+		Optional<Reporter> reporter = Optional.ofNullable(jiraInternRequest.reporterName()).map(name -> new Reporter(null, name, null));
 
 		Project newProject = Project.builder()
 				.key(project.key())
@@ -32,7 +33,7 @@ public class JiraMapper {
 				.project(newProject)
 				.issuetype(newIssueType)
 				.summary(jiraInternRequest.summary())
-				.reporter(reporter)
+				.reporter(reporter.orElse(null))
 				.description(jiraInternRequest.description())
 				.labels(jiraInternRequest.labels().toArray(String[]::new))
 				.customProperties(extraProperties)
