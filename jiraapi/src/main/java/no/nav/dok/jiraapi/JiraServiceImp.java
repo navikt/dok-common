@@ -33,7 +33,7 @@ public class JiraServiceImp implements JiraService {
 
 		Issue issue = jiraClient.opprettMMAOppgaveJira(jiraInternRequest);
 
-		jiraClient.oppdaterJiraStatus(issue.key());
+		jiraClient.oppdaterJiraStatusTilKlarForArbeid(issue.key());
 
 		return JiraResponse.builder().jiraIssueKey(issue.key())
 				.message(responseUrl(issue.self(), issue.key()))
@@ -63,7 +63,7 @@ public class JiraServiceImp implements JiraService {
 		assertNotNull("file", jiraInternRequest.vedlegg());
 		jiraClient.leggTilVedlegg(issue.key(), jiraInternRequest);
 
-		Issue oppdaterOppgave = jiraClient.oppdaterJiraStatus(issue.key());
+		Issue oppdaterOppgave = jiraClient.oppdaterJiraStatusTilKlarForArbeid(issue.key());
 
 		return JiraResponse.builder().jiraIssueKey(issue.key())
 				.message(responseUrl(issue.self(), issue.key()))
