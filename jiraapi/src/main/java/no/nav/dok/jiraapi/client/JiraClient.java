@@ -10,6 +10,7 @@ import no.nav.dok.jiracore.exception.JiraClientException;
 import no.nav.dok.jiracore.interndomain.Issue;
 import no.nav.dok.jiracore.interndomain.IssueInput;
 import no.nav.dok.jiracore.interndomain.IssueType;
+import no.nav.dok.jiracore.interndomain.IssueUpdateInput;
 import no.nav.dok.jiracore.interndomain.JiraInternRequest;
 import no.nav.dok.jiracore.interndomain.JiraTransition;
 import no.nav.dok.jiracore.interndomain.Project;
@@ -25,20 +26,20 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Predicate;
 
 import static java.lang.String.format;
 import static java.net.HttpURLConnection.HTTP_CREATED;
 import static java.net.HttpURLConnection.HTTP_OK;
-import static java.util.Collections.emptyMap;
 import static no.nav.dok.jiracore.config.JiraConstant.ATTACHMENT;
 import static no.nav.dok.jiracore.config.JiraConstant.ISSUE_PATH;
 import static no.nav.dok.jiracore.config.JiraConstant.ISSUE_TYPE_OPPGAVE;
 import static no.nav.dok.jiracore.config.JiraConstant.PROJECT_KEY_TDH;
 import static no.nav.dok.jiracore.config.JiraConstant.PROJECT_PATH;
 import static no.nav.dok.jiracore.config.JiraConstant.TRANSITION;
-import static no.nav.dok.jiracore.config.JiraConstant.TRANSITION_ID;
+import static no.nav.dok.jiracore.config.JiraConstant.TRANSITION_ID_KLAR_TIL_ARBEID;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -75,7 +76,7 @@ public class JiraClient {
 	}
 
 	public Issue opprettMMAOppgaveJira(JiraInternRequest request) {
-		return opprettJira(request, PROJECT_KEY_TDH, issueType -> ISSUE_TYPE_OPPGAVE.equals(issueType.name()), emptyMap());
+		return opprettJira(request, PROJECT_KEY_TDH, issueType -> ISSUE_TYPE_OPPGAVE.equals(issueType.name()), new HashMap<>());
 	}
 
 	/**
@@ -87,7 +88,7 @@ public class JiraClient {
 	 */
 	@Deprecated(forRemoval = true)
 	public Issue opprettJira(JiraInternRequest request) {
-		return opprettJira(request, PROJECT_KEY_TDH, issueType -> ISSUE_TYPE_OPPGAVE.equals(issueType.name()), emptyMap());
+		return opprettJira(request, PROJECT_KEY_TDH, issueType -> ISSUE_TYPE_OPPGAVE.equals(issueType.name()), new HashMap<>());
 	}
 
 	public Issue opprettJira(JiraInternRequest request, String projectKey, Predicate<IssueType> issueTypePredicate, Map<String,Object> extraProperties) {
@@ -153,9 +154,25 @@ public class JiraClient {
 		}
 	}
 
-	public Issue oppdaterJiraStatus(final String key) {
+	public Issue oppdaterJiraIssue(String key, IssueUpdateInput issueUpdateInput) {
 		try {
-			JiraTransition transition = new JiraTransition(new JiraTransition.Transition(TRANSITION_ID));
+			HttpRequest httpRequest = httpRequestBuilder().uri(URI.create(jiraProperties.url() + ISSUE_PATH + "/" + key))
+					.header(CONTENT_TYPE, APPLICATION_JSON_VALUE)
+					.PUT(HttpRequest.BodyPublishers.ofString(serialize(issueUpdateInput)))
+					.build();
+			httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+
+			return hentIssue(key);
+
+		} catch (Exception e) {
+			throw new JiraClientException(format("oppdaterJiraStatus feilet med feilmelding=%s", e.getMessage()), e.getCause());
+		}
+	}
+
+
+	public Issue oppdaterJiraStatusTilKlarForArbeid(final String key) {
+		try {
+			JiraTransition transition = new JiraTransition(new JiraTransition.Transition(TRANSITION_ID_KLAR_TIL_ARBEID));
 			HttpRequest httpRequest = httpRequestBuilder().uri(URI.create(jiraProperties.url() + ISSUE_PATH + "/" + key + TRANSITION))
 					.header(CONTENT_TYPE, APPLICATION_JSON_VALUE)
 					.POST(HttpRequest.BodyPublishers.ofString(serialize(transition)))
