@@ -7,6 +7,7 @@ import no.nav.dok.jiraapi.JiraProperties;
 import no.nav.dok.jiracore.config.JiraMapper;
 import no.nav.dok.jiracore.config.JsonBodyHandler;
 import no.nav.dok.jiracore.exception.JiraClientException;
+import no.nav.dok.jiracore.interndomain.CompleteIssue;
 import no.nav.dok.jiracore.interndomain.Issue;
 import no.nav.dok.jiracore.interndomain.IssueInput;
 import no.nav.dok.jiracore.interndomain.IssueType;
@@ -76,7 +77,7 @@ public class JiraClient {
 	}
 
 	public Issue opprettMMAOppgaveJira(JiraInternRequest request) {
-		return opprettJira(request, PROJECT_KEY_TDH, issueType -> ISSUE_TYPE_OPPGAVE.equals(issueType.name()), new HashMap<>());
+		return opprettJira(request, PROJECT_KEY_TDH, issueType -> ISSUE_TYPE_OPPGAVE.equals(issueType.name()), new HashMap<>(), Issue.class);
 	}
 
 	/**
@@ -88,10 +89,10 @@ public class JiraClient {
 	 */
 	@Deprecated(forRemoval = true)
 	public Issue opprettJira(JiraInternRequest request) {
-		return opprettJira(request, PROJECT_KEY_TDH, issueType -> ISSUE_TYPE_OPPGAVE.equals(issueType.name()), new HashMap<>());
+		return opprettMMAOppgaveJira(request);
 	}
 
-	public Issue opprettJira(JiraInternRequest request, String projectKey, Predicate<IssueType> issueTypePredicate, Map<String,Object> extraProperties) {
+	public <T> T opprettJira(JiraInternRequest request, String projectKey, Predicate<IssueType> issueTypePredicate, Map<String,Object> extraProperties, Class<T> responseType) {
 		Project project = hentProject(projectKey);
 		IssueInput issueInput = JiraMapper.map(request, project, issueTypePredicate, extraProperties);
 		try {
@@ -108,7 +109,7 @@ public class JiraClient {
 			if (response.statusCode() != HTTP_CREATED) {
 				throw new JiraClientException(format("opprettJira feilet med status=%s feilmelding=%s", response.statusCode(), response.body()));
 			}
-			return objectMapper.readValue(response.body(), Issue.class);
+			return objectMapper.readValue(response.body(), responseType);
 		} catch (IOException | InterruptedException e) {
 			throw new JiraClientException(format("opprettJira feilet med feilmelding=%s", e.getMessage()), e);
 		}
@@ -154,15 +155,18 @@ public class JiraClient {
 		}
 	}
 
-	public Issue oppdaterJiraIssue(String key, IssueUpdateInput issueUpdateInput) {
+	public <T> T oppdaterJiraIssue(String key, IssueUpdateInput issueUpdateInput, Class<T> responseType) {
 		try {
 			HttpRequest httpRequest = httpRequestBuilder().uri(URI.create(jiraProperties.url() + ISSUE_PATH + "/" + key))
 					.header(CONTENT_TYPE, APPLICATION_JSON_VALUE)
 					.PUT(HttpRequest.BodyPublishers.ofString(serialize(issueUpdateInput)))
 					.build();
-			httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+			HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
 
-			return hentIssue(key);
+			if (response.statusCode() >= 400) {
+				throw new JiraClientException(format("oppdaterJiraIssue feilet med status=%s feilmelding=%s", response.statusCode(), response.body()));
+			}
+			return objectMapper.readValue(response.body(), responseType);
 
 		} catch (Exception e) {
 			throw new JiraClientException(format("oppdaterJiraStatus feilet med feilmelding=%s", e.getMessage()), e.getCause());
