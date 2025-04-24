@@ -1,6 +1,5 @@
 package no.nav.dok.jiracore.interndomain;
 
-
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Builder;
@@ -13,14 +12,12 @@ public record BasicInputFields(
 		String summary,
 		IssueType issuetype,
 		String description,
-		String[] labels
-
-		, @JsonIgnore Map<String, Object> customProperties
+		String[] labels,
+		@JsonIgnore Map<String, ?> customProperties
 ) {
 
 	@JsonAnyGetter
-	public Map<String, Object> jiraCustomProperties() {
+	public Map<String, ?> jiraCustomProperties() {
 		return customProperties;
 	}
-
 }

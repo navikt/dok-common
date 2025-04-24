@@ -5,10 +5,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.util.Map;
 
-public record FlexibleInputFields(@JsonIgnore Map<String, Object> customProperties) {
+public record FlexibleInputFields(@JsonIgnore Map<String, ?> customProperties) {
 
 	@JsonAnyGetter
-	public Map<String, Object> jiraCustomProperties() {
+	public Map<String, ?> jiraCustomProperties() {
 		return customProperties;
 	}
 

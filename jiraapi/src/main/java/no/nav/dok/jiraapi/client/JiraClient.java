@@ -7,7 +7,8 @@ import no.nav.dok.jiraapi.JiraProperties;
 import no.nav.dok.jiracore.config.JiraMapper;
 import no.nav.dok.jiracore.config.JsonBodyHandler;
 import no.nav.dok.jiracore.exception.JiraClientException;
-import no.nav.dok.jiracore.interndomain.CompleteIssue;
+import no.nav.dok.jiracore.interndomain.CustomField;
+import no.nav.dok.jiracore.interndomain.FlexibleInputFields;
 import no.nav.dok.jiracore.interndomain.Issue;
 import no.nav.dok.jiracore.interndomain.IssueInput;
 import no.nav.dok.jiracore.interndomain.IssueType;
@@ -27,8 +28,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.function.Predicate;
 
 import static java.lang.String.format;
@@ -36,7 +35,7 @@ import static java.net.HttpURLConnection.HTTP_CREATED;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static no.nav.dok.jiracore.config.JiraConstant.ATTACHMENT;
 import static no.nav.dok.jiracore.config.JiraConstant.ISSUE_PATH;
-import static no.nav.dok.jiracore.config.JiraConstant.ISSUE_TYPE_OPPGAVE;
+import static no.nav.dok.jiracore.config.JiraConstant.ISSUE_TYPE_MMA_OPPGAVE;
 import static no.nav.dok.jiracore.config.JiraConstant.PROJECT_KEY_TDH;
 import static no.nav.dok.jiracore.config.JiraConstant.PROJECT_PATH;
 import static no.nav.dok.jiracore.config.JiraConstant.TRANSITION;
@@ -77,7 +76,7 @@ public class JiraClient {
 	}
 
 	public Issue opprettMMAOppgaveJira(JiraInternRequest request) {
-		return opprettJira(request, PROJECT_KEY_TDH, issueType -> ISSUE_TYPE_OPPGAVE.equals(issueType.name()), new HashMap<>(), Issue.class);
+		return opprettJira(request, PROJECT_KEY_TDH, ISSUE_TYPE_MMA_OPPGAVE, Issue.class);
 	}
 
 	/**
@@ -92,9 +91,9 @@ public class JiraClient {
 		return opprettMMAOppgaveJira(request);
 	}
 
-	public <T> T opprettJira(JiraInternRequest request, String projectKey, Predicate<IssueType> issueTypePredicate, Map<String,Object> extraProperties, Class<T> responseType) {
+	public <T> T opprettJira(JiraInternRequest request, String projectKey, Predicate<IssueType> issueTypePredicate, Class<T> responseType, CustomField... customFields) {
 		Project project = hentProject(projectKey);
-		IssueInput issueInput = JiraMapper.map(request, project, issueTypePredicate, extraProperties);
+		IssueInput issueInput = JiraMapper.map(request, project, issueTypePredicate, customFields);
 		try {
 			String issueInputAsString = serialize(issueInput);
 
@@ -155,7 +154,12 @@ public class JiraClient {
 		}
 	}
 
-	public <T> T oppdaterJiraIssue(String key, IssueUpdateInput issueUpdateInput, Class<T> responseType) {
+
+	public <T> T oppdaterJiraIssue(String key, Class<T> responseType, CustomField... customFields) {
+		return oppdaterJiraIssue(key, responseType, new IssueUpdateInput(new FlexibleInputFields(JiraMapper.mapCustomFields(customFields))));
+	}
+
+	public <T> T oppdaterJiraIssue(String key, Class<T> responseType, IssueUpdateInput issueUpdateInput) {
 		try {
 			HttpRequest httpRequest = httpRequestBuilder().uri(URI.create(jiraProperties.url() + ISSUE_PATH + "/" + key))
 					.header(CONTENT_TYPE, APPLICATION_JSON_VALUE)
