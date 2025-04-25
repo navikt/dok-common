@@ -22,4 +22,8 @@ public record JiraRequest(
 		List<String> labels,
 		byte[] vedlegg,
 		LocalDate avstemmingsfilDato) {
+
+	public String filnavn() {
+		return this.labels().getFirst() + "-" + this.avstemmingsfilDato();
+	}
 }

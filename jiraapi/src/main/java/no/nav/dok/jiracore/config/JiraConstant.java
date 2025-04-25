@@ -1,6 +1,9 @@
 package no.nav.dok.jiracore.config;
 
+import no.nav.dok.jiracore.interndomain.AnsvarligTeam;
+import no.nav.dok.jiracore.interndomain.BeroertTjeneste;
 import no.nav.dok.jiracore.interndomain.IssueType;
+import no.nav.dok.jiracore.interndomain.SaksKategori;
 
 import java.util.function.Predicate;
 
@@ -22,4 +25,9 @@ public class JiraConstant {
 
 	public static final Predicate<IssueType> ISSUE_TYPE_MMA_OPPGAVE = issueType -> ISSUE_TYPE_OPPGAVE.equals(issueType.name());
 	public static final Predicate<IssueType> ISSUE_TYPE_IKT_INCIDENT = issueType -> ISSUE_TYPE_INCIDENT.equals(issueType.id());
+
+	public static final SaksKategori SAKSKATEGORI_TJENESTE_UTILGJENGELIG = new SaksKategori(SaksKategori.TJENESTE_UTILGJENGELIG_CMDB_KEY);
+	public static final AnsvarligTeam ANSVARLIG_TEAM_FAGPOST = new AnsvarligTeam(AnsvarligTeam.YTELSESLINJEN_FAGPOST_CMDB_KEY);
+	public static final AnsvarligTeam ANSVARLIG_TEAM_DOKUMENTLOESNINGER = new AnsvarligTeam(AnsvarligTeam.TEAM_DOKUMENTLOESNINGER_CMDB_KEY);
+	public static final BeroertTjeneste BEROERT_TJENESTE_DOKUMENTLOESNINGER = new BeroertTjeneste(BeroertTjeneste.DOKUMENTLOESNINGER_CMDB_KEY);
 }

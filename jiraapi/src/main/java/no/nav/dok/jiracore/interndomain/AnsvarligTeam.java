@@ -9,11 +9,4 @@ public class AnsvarligTeam extends CustomField {
 		super(ANSVARLIG_TEAM_CUSTOMFIELD_KEY, cmdbId);
 	}
 
-	public static AnsvarligTeam teamDokumentloesninger() {
-		return new AnsvarligTeam(TEAM_DOKUMENTLOESNINGER_CMDB_KEY);
-	}
-
-	public static AnsvarligTeam fagpost() {
-		return new AnsvarligTeam(YTELSESLINJEN_FAGPOST_CMDB_KEY);
-	}
 }

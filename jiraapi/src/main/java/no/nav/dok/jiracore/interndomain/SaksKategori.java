@@ -8,7 +8,4 @@ public class SaksKategori extends CustomField {
 		super(SAKSKATEGORI_CUSTOMFIELD_KEY, cmdbId);
 	}
 
-	public static SaksKategori tjenesteUtilgjengelig() {
-		return new SaksKategori(TJENESTE_UTILGJENGELIG_CMDB_KEY);
-	}
 }
