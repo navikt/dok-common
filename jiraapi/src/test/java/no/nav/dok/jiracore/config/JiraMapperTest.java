@@ -2,17 +2,18 @@ package no.nav.dok.jiracore.config;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import no.nav.dok.jiraapi.JiraRequest;
 import no.nav.dok.jiracore.interndomain.AnsvarligTeam;
 import no.nav.dok.jiracore.interndomain.BeroertTjeneste;
 import no.nav.dok.jiracore.interndomain.CompleteJiraIssue;
 import no.nav.dok.jiracore.interndomain.CustomField;
 import no.nav.dok.jiracore.interndomain.IssueType;
-import no.nav.dok.jiracore.interndomain.JiraInternRequest;
 import no.nav.dok.jiracore.interndomain.Project;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,7 +22,7 @@ class JiraMapperTest {
 
 	@Test
 	void mapAndSerializeWithExtraProperties() throws JsonProcessingException {
-		JiraInternRequest jiraInternRequest = JiraInternRequest.builder()
+		JiraRequest jiraInternRequest = JiraRequest.builder()
 				.description("description")
 				.reporterName("Tim Dokumentløsninger")
 				.summary("an issue must be resolved")
@@ -34,10 +35,11 @@ class JiraMapperTest {
 				.build();
 
 		var mappedJiraRequest = JiraMapper.map(jiraInternRequest, project, x -> true,
-				new AnsvarligTeam("Custom property 1"),
-				new BeroertTjeneste("Custom property 2"),
-				new HypotheticalComplicatedCustomField()
-		);
+				Stream.of(
+						new AnsvarligTeam("Custom property 1"),
+						new BeroertTjeneste("Custom property 2"),
+						new HypotheticalComplicatedCustomField()
+				));
 
 		var objectMapper = new ObjectMapper();
 		String mappedJson = objectMapper.writeValueAsString(mappedJiraRequest);
@@ -53,7 +55,7 @@ class JiraMapperTest {
 
 	@Test
 	void mapAndSerializeWithExtraPropertiesNoReporter() throws JsonProcessingException {
-		JiraInternRequest jiraInternRequest = JiraInternRequest.builder()
+		JiraRequest jiraInternRequest = JiraRequest.builder()
 				.description("description")
 				.reporterName(null)
 				.summary("an issue must be resolved")
@@ -66,10 +68,11 @@ class JiraMapperTest {
 				.build();
 
 		var mappedJiraRequest = JiraMapper.map(jiraInternRequest, project, x -> true,
-				new AnsvarligTeam("Custom property 1"),
-				new BeroertTjeneste("Custom property 2"),
-				new HypotheticalComplicatedCustomField()
-		);
+				Stream.of(
+						new AnsvarligTeam("Custom property 1"),
+						new BeroertTjeneste("Custom property 2"),
+						new HypotheticalComplicatedCustomField()
+				));
 
 		var objectMapper = new ObjectMapper();
 		String mappedJson = objectMapper.writeValueAsString(mappedJiraRequest);
@@ -79,7 +82,7 @@ class JiraMapperTest {
 
 	@Test
 	void mapAndSerializeWithExtraPropertiesAndSuccessfullyDeserialize() throws JsonProcessingException {
-		JiraInternRequest jiraInternRequest = JiraInternRequest.builder()
+		JiraRequest jiraInternRequest = JiraRequest.builder()
 				.description("description")
 				.reporterName("Tim Dokumentløsninger")
 				.summary("an issue must be resolved")
@@ -92,10 +95,11 @@ class JiraMapperTest {
 				.build();
 
 		var mappedJiraRequest = JiraMapper.map(jiraInternRequest, project, x -> true,
-				new AnsvarligTeam("Custom property 1"),
-				new BeroertTjeneste("Custom property 2"),
-				new HypotheticalComplicatedCustomField()
-		);
+				Stream.of(
+						new AnsvarligTeam("Custom property 1"),
+						new BeroertTjeneste("Custom property 2"),
+						new HypotheticalComplicatedCustomField()
+				));
 
 		var objectMapper = new ObjectMapper();
 		String mappedJson = objectMapper.writeValueAsString(mappedJiraRequest);

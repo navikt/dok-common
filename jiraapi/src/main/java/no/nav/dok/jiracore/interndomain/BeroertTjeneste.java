@@ -8,7 +8,4 @@ public class BeroertTjeneste extends CustomField {
 		super(BEROERT_TJENESTE_CUSTOMFIELD_KEY, cmdbId);
 	}
 
-	public static BeroertTjeneste dokumentloesninger() {
-		return new BeroertTjeneste(DOKUMENTLOESNINGER_CMDB_KEY);
-	}
 }

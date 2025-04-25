@@ -1,10 +1,10 @@
 package no.nav.dok.jiracore.config;
 
+import no.nav.dok.jiraapi.JiraRequest;
 import no.nav.dok.jiracore.interndomain.BasicInputFields;
 import no.nav.dok.jiracore.interndomain.CustomField;
 import no.nav.dok.jiracore.interndomain.IssueInput;
 import no.nav.dok.jiracore.interndomain.IssueType;
-import no.nav.dok.jiracore.interndomain.JiraInternRequest;
 import no.nav.dok.jiracore.interndomain.Project;
 import no.nav.dok.jiracore.interndomain.Reporter;
 
@@ -20,7 +20,7 @@ import java.util.stream.Stream;
  * JiraMapper strukturt til å tilpasse jira interndomain
  */
 public class JiraMapper {
-	public static IssueInput map(JiraInternRequest jiraInternRequest, Project project, Predicate<IssueType> issueTypePredicate, CustomField... customFields) {
+	public static IssueInput map(JiraRequest jiraInternRequest, Project project, Predicate<IssueType> issueTypePredicate, Stream<CustomField> customFields) {
 		Map<String, Object> extraProperties = new HashMap<>();
 
 		Optional<Reporter> reporter = Optional.ofNullable(jiraInternRequest.reporterName()).map(name -> new Reporter(null, name, null));
@@ -49,7 +49,7 @@ public class JiraMapper {
 		return new IssueInput(basicInputFields);
 	}
 
-	public static Map<String, List<Map<String, String>>> mapCustomFields(CustomField[] customFields) {
-		return Stream.of(customFields).collect(Collectors.toMap(CustomField::getCustomFieldKey, CustomField::asRawInput));
+	public static Map<String, List<Map<String, String>>> mapCustomFields(Stream<CustomField> customFields) {
+		return customFields.collect(Collectors.toMap(CustomField::getCustomFieldKey, CustomField::asRawInput));
 	}
 }

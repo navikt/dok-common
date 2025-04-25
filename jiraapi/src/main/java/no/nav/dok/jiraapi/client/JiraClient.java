@@ -4,19 +4,22 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import no.nav.dok.jiraapi.JiraProperties;
+import no.nav.dok.jiraapi.JiraRequest;
 import no.nav.dok.jiracore.config.JiraMapper;
 import no.nav.dok.jiracore.config.JsonBodyHandler;
 import no.nav.dok.jiracore.exception.JiraClientException;
+import no.nav.dok.jiracore.interndomain.AnsvarligTeam;
+import no.nav.dok.jiracore.interndomain.CompleteJiraIssue;
 import no.nav.dok.jiracore.interndomain.CustomField;
 import no.nav.dok.jiracore.interndomain.FlexibleInputFields;
 import no.nav.dok.jiracore.interndomain.Issue;
 import no.nav.dok.jiracore.interndomain.IssueInput;
 import no.nav.dok.jiracore.interndomain.IssueType;
 import no.nav.dok.jiracore.interndomain.IssueUpdateInput;
-import no.nav.dok.jiracore.interndomain.JiraInternRequest;
 import no.nav.dok.jiracore.interndomain.JiraTransition;
 import no.nav.dok.jiracore.interndomain.Project;
-import org.springframework.core.io.FileSystemResource;
+import no.nav.dok.jiracore.interndomain.SaksKategori;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.web.client.RestClient;
 
@@ -29,13 +32,16 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static java.net.HttpURLConnection.HTTP_CREATED;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static no.nav.dok.jiracore.config.JiraConstant.ATTACHMENT;
 import static no.nav.dok.jiracore.config.JiraConstant.ISSUE_PATH;
+import static no.nav.dok.jiracore.config.JiraConstant.ISSUE_TYPE_IKT_INCIDENT;
 import static no.nav.dok.jiracore.config.JiraConstant.ISSUE_TYPE_MMA_OPPGAVE;
+import static no.nav.dok.jiracore.config.JiraConstant.PROJECT_KEY_IKT;
 import static no.nav.dok.jiracore.config.JiraConstant.PROJECT_KEY_TDH;
 import static no.nav.dok.jiracore.config.JiraConstant.PROJECT_PATH;
 import static no.nav.dok.jiracore.config.JiraConstant.TRANSITION;
@@ -75,8 +81,13 @@ public class JiraClient {
 				.build();
 	}
 
-	public Issue opprettMMAOppgaveJira(JiraInternRequest request) {
-		return opprettJira(request, PROJECT_KEY_TDH, ISSUE_TYPE_MMA_OPPGAVE, Issue.class);
+	public Issue opprettMMAOppgaveJira(JiraRequest request) {
+		return opprettJira(request, PROJECT_KEY_TDH, ISSUE_TYPE_MMA_OPPGAVE, Issue.class, Stream.empty());
+	}
+
+	public CompleteJiraIssue opprettIKTOppgaveJira(JiraRequest request, SaksKategori saksKategori, AnsvarligTeam ansvarligTeam, CustomField... customFields) {
+		return opprettJira(request, PROJECT_KEY_IKT, ISSUE_TYPE_IKT_INCIDENT, CompleteJiraIssue.class,
+				Stream.concat(Stream.of(saksKategori, ansvarligTeam), Stream.of(customFields)));
 	}
 
 	/**
@@ -87,11 +98,11 @@ public class JiraClient {
 	 * @deprecated Erstattes med opprettMMAOppgaveJira med klarere navngivning
 	 */
 	@Deprecated(forRemoval = true)
-	public Issue opprettJira(JiraInternRequest request) {
+	public Issue opprettJira(JiraRequest request) {
 		return opprettMMAOppgaveJira(request);
 	}
 
-	public <T> T opprettJira(JiraInternRequest request, String projectKey, Predicate<IssueType> issueTypePredicate, Class<T> responseType, CustomField... customFields) {
+	public <T> T opprettJira(JiraRequest request, String projectKey, Predicate<IssueType> issueTypePredicate, Class<T> responseType, Stream<CustomField> customFields) {
 		Project project = hentProject(projectKey);
 		IssueInput issueInput = JiraMapper.map(request, project, issueTypePredicate, customFields);
 		try {
@@ -114,13 +125,13 @@ public class JiraClient {
 		}
 	}
 
-	private static JsonBodyHandler<Issue> getResponseBodyHandler() {
-		return new JsonBodyHandler<>(Issue.class);
+	public static ByteArrayResource vedleggFraByteArray(JiraRequest jiraInternRequest) {
+		return new ByteArrayResource(jiraInternRequest.vedlegg(), jiraInternRequest.filnavn() + ".csv");
 	}
 
-	public int leggTilVedlegg(String key, JiraInternRequest request) {
+	public int leggTilVedlegg(String key, JiraRequest request) {
 		MultipartBodyBuilder multipartBodyBuilder = new MultipartBodyBuilder();
-		multipartBodyBuilder.part("file", new FileSystemResource(request.vedlegg()));
+		multipartBodyBuilder.part("file", vedleggFraByteArray(request));
 		return restClient.post()
 				.uri(uriBuilder -> uriBuilder.path(ISSUE_PATH + "/" + key + ATTACHMENT)
 						.build())
@@ -155,7 +166,7 @@ public class JiraClient {
 	}
 
 
-	public <T> T oppdaterJiraIssue(String key, Class<T> responseType, CustomField... customFields) {
+	public <T> T oppdaterJiraIssue(String key, Class<T> responseType, Stream<CustomField> customFields) {
 		return oppdaterJiraIssue(key, responseType, new IssueUpdateInput(new FlexibleInputFields(JiraMapper.mapCustomFields(customFields))));
 	}
 
