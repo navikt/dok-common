@@ -125,13 +125,15 @@ public class JiraClient {
 		}
 	}
 
-	public static ByteArrayResource vedleggFraByteArray(JiraRequest jiraInternRequest) {
-		return new ByteArrayResource(jiraInternRequest.vedlegg(), jiraInternRequest.filnavn() + ".csv");
+	public static ByteArrayResource vedleggFraByteArray(JiraRequest jiraRequest) {
+		return new ByteArrayResource(jiraRequest.vedlegg());
 	}
 
 	public int leggTilVedlegg(String key, JiraRequest request) {
 		MultipartBodyBuilder multipartBodyBuilder = new MultipartBodyBuilder();
-		multipartBodyBuilder.part("file", vedleggFraByteArray(request));
+		multipartBodyBuilder
+				.part("file", vedleggFraByteArray(request))
+				.filename(request.filnavn() + ".csv");
 		return restClient.post()
 				.uri(uriBuilder -> uriBuilder.path(ISSUE_PATH + "/" + key + ATTACHMENT)
 						.build())
