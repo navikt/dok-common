@@ -9,6 +9,7 @@
 
 	<modules>
 		<module>jiraapi</module>
+		<module>util</module>
 	</modules>
 
 	<properties>
