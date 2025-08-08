@@ -18,19 +18,16 @@ public class JsonBodyHandler<T> implements HttpResponse.BodyHandler<T> {
 
 	@Override
 	public HttpResponse.BodySubscriber<T> apply(HttpResponse.ResponseInfo responseInfo) {
-		return asJson(tClass);
-	}
-
-	public static <W> HttpResponse.BodySubscriber<W> asJson(Class<W> targetType) {
 		HttpResponse.BodySubscriber<String> upstream = HttpResponse.BodySubscribers.ofString(UTF_8);
 		return HttpResponse.BodySubscribers.mapping(upstream,
 				(String body) -> {
 					try {
 						ObjectMapper mapper = new ObjectMapper().configure(IGNORE_UNKNOWN, true);
-						return mapper.readValue(body, targetType);
+						return mapper.readValue(body, tClass);
 					} catch (JsonProcessingException e) {
-						throw new JiraClientException(e.getMessage(), e);
+						throw new JiraClientException("Unable to map response! Response statuscode: " + responseInfo.statusCode() + " Exception: " + e.getMessage(), e);
 					}
 				});
 	}
+
 }

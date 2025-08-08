@@ -3,6 +3,7 @@ package no.nav.dok.jiraapi.client;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import no.nav.dok.jiraapi.JiraProperties;
 import no.nav.dok.jiraapi.JiraRequest;
 import no.nav.dok.jiracore.config.JiraMapper;
@@ -55,6 +56,7 @@ import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
  * Jira api client bruker Java HttpClient til å gjøre kall mot jira
  */
 
+@Slf4j
 public class JiraClient {
 
 	private final HttpClient httpClient;
@@ -105,21 +107,29 @@ public class JiraClient {
 	public <T> T opprettJira(JiraRequest request, String projectKey, Predicate<IssueType> issueTypePredicate, Class<T> responseType, Stream<CustomField> customFields) {
 		Project project = hentProject(projectKey);
 		IssueInput issueInput = JiraMapper.map(request, project, issueTypePredicate, customFields);
+		String issueInputAsString = serialize(issueInput);
+		log.debug("transmit to jira: {}", issueInputAsString);
+
+		HttpRequest httpRequest = httpRequestBuilder()
+				.uri(URI.create(jiraProperties.url() + ISSUE_PATH))
+				.header(CONTENT_TYPE, APPLICATION_JSON_VALUE)
+				.POST(HttpRequest.BodyPublishers.ofString(issueInputAsString))
+				.build();
+		// TODO: alle requestene her må skrives så det blir tydelig om ting feiler pga. auth / routing / shit
+		// fortrinnsvis legg til en måte å logge ut requests response for ting som kan toggles av og på
+
 		try {
-			String issueInputAsString = serialize(issueInput);
-
-			HttpRequest httpRequest = httpRequestBuilder()
-					.uri(URI.create(jiraProperties.url() + ISSUE_PATH))
-					.header(CONTENT_TYPE, APPLICATION_JSON_VALUE)
-					.POST(HttpRequest.BodyPublishers.ofString(issueInputAsString))
-					.build();
-
 			HttpResponse<String> response = httpClient.send(httpRequest, HttpResponse.BodyHandlers.ofString());
 
 			if (response.statusCode() != HTTP_CREATED) {
 				throw new JiraClientException(format("opprettJira feilet med status=%s feilmelding=%s", response.statusCode(), response.body()));
 			}
-			return objectMapper.readValue(response.body(), responseType);
+			try {
+				log.debug("response body from jira: {}", response.body());
+				return objectMapper.readValue(response.body(), responseType);
+			} catch (JsonProcessingException e) {
+				throw new JiraClientException(format("opprettJira feilet dekode med feilmelding=%s", e.getMessage()), e);
+			}
 		} catch (IOException | InterruptedException e) {
 			throw new JiraClientException(format("opprettJira feilet med feilmelding=%s", e.getMessage()), e);
 		}
@@ -233,7 +243,7 @@ public class JiraClient {
 			ObjectMapper objectMapper = new ObjectMapper();
 			return objectMapper.writeValueAsString(object);
 		} catch (JsonProcessingException e) {
-			throw new IllegalStateException(e);
+			throw new IllegalArgumentException(e);
 		}
 	}
 
