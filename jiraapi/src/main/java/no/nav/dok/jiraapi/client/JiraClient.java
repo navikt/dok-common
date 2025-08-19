@@ -186,7 +186,7 @@ public class JiraClient {
 	 * @param key key for issuet som skal oppdateres
 	 * @return issuet slik det ser ut etter endring
 	 */
-	public Issue oppdaterJiraStatusTilKlarForArbeid(final String key) {
+	public Issue oppdaterJiraStatusTilKlarTilArbeid(final String key) {
 		JiraTransition transition = new JiraTransition(new JiraTransition.Transition(TRANSITION_ID_KLAR_TIL_ARBEID));
 		HttpRequest httpRequest = httpRequestBuilder().uri(URI.create(jiraProperties.url() + ISSUE_PATH + "/" + key + TRANSITION))
 				.header(CONTENT_TYPE, APPLICATION_JSON_VALUE)

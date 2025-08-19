@@ -24,11 +24,11 @@ public class JiraService {
 		this.jiraClient = jiraClient;
 	}
 
-	public JiraResponse opprettJiraOppgave(JiraRequest jiraRequest) {
+	public JiraResponse opprettJiraMMAOppgave(JiraRequest jiraRequest) {
 
 		Issue issue = jiraClient.opprettMMAOppgaveJira(jiraRequest);
 
-		jiraClient.oppdaterJiraStatusTilKlarForArbeid(issue.key());
+		jiraClient.oppdaterJiraStatusTilKlarTilArbeid(issue.key());
 
 		return JiraResponse.builder().jiraIssueKey(issue.key())
 				.message(responseUrl(issue.self(), issue.key()))
@@ -40,7 +40,7 @@ public class JiraService {
 	 * @param jiraRequest jira requesten mapper JiraRequest og requesten bruker til å opprette jira sak.
 	 * @return metoden opprette jira oppgave ved vedlegg og returnerer jira key, melding og httpstatus
 	 */
-	public JiraResponse opprettJiraOppgaveMedVedlegg(JiraRequest jiraRequest) {
+	public JiraResponse opprettJiraMMAOppgaveMedVedlegg(JiraRequest jiraRequest) {
 
 		if (jiraRequest.vedlegg() == null || jiraRequest.vedlegg().length == 0) {
 			return JiraResponse.builder()
@@ -54,7 +54,7 @@ public class JiraService {
 		assertNotNullOrEmpty("key", issue.key());
 		jiraClient.leggTilVedlegg(issue.key(), jiraRequest);
 
-		Issue oppdaterOppgave = jiraClient.oppdaterJiraStatusTilKlarForArbeid(issue.key());
+		Issue oppdaterOppgave = jiraClient.oppdaterJiraStatusTilKlarTilArbeid(issue.key());
 
 		return JiraResponse.builder().jiraIssueKey(issue.key())
 				.message(responseUrl(issue.self(), issue.key()))
