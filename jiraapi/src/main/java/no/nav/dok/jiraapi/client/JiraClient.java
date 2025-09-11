@@ -146,7 +146,7 @@ public class JiraClient {
 		MultipartBodyBuilder multipartBodyBuilder = new MultipartBodyBuilder();
 		multipartBodyBuilder
 				.part("file", vedleggFraByteArray(request))
-				.filename(request.filnavn() + ".csv");
+				.filename(request.filnavn());
 		restClient.post()
 				.uri(uriBuilder -> uriBuilder.path(ISSUE_PATH + "/" + key + ATTACHMENT)
 						.build())
