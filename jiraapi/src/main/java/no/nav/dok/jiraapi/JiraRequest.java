@@ -19,11 +19,15 @@ public record JiraRequest(
 		@NotEmpty String reporterName,
 		@NotEmpty String description,
 		@NotEmpty String summary,
+		String filnavn,
 		List<String> labels,
 		byte[] vedlegg,
 		LocalDate avstemmingsfilDato) {
 
 	public String filnavn() {
-		return this.labels().getFirst() + "-" + this.avstemmingsfilDato();
+		if (filnavn == null) {
+			return this.labels().getFirst() + "-" + this.avstemmingsfilDato() + ".csv";
+		}
+		return filnavn;
 	}
 }
