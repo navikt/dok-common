@@ -15,4 +15,4 @@ jobs:
     uses: navikt/dok-workflows/.github/workflows/automerge-dependabot-pr.yml@main
     secrets: inherit
     with:
-      deploy-and-draft-release: false
+      build-artifact: true
