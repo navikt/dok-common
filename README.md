@@ -17,5 +17,9 @@ Maven:
 </dependency>
 ```
 
+### Hvordan release ny versjon
+
+Så lenge [build-artifact](https://github.com/navikt/dok-workflows/blob/main/.github/workflows/build-artifact.yml) genererer build tags på ikke-semver format må vi sette versjon manuelt for hver release. Dette gjøres ved å endre release tag og tittel til ønsket versjon før release publiseres (tittel er strengt talt ikke nødvendig, men ryddig å endre til samme som tag).
+
 ### Contact
 Spørsmål om koda eller prosjektet kan stillast på [Slack-kanalen for \#Team Dokumentløsninger](https://nav-it.slack.com/archives/C6W9E5GPJ).
