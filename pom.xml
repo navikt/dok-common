@@ -20,7 +20,7 @@
 		<slf4j.version>2.0.17</slf4j.version>
 		<commons-lang3.version>3.20.0</commons-lang3.version>
 		<jakarta.validation-api.version>3.1.1</jakarta.validation-api.version>
-		<jackson-databind.version>2.20.1</jackson-databind.version>
+		<jackson-databind.version>2.21.0</jackson-databind.version>
 		<springframework.version>6.2.12</springframework.version>
 		<junit.version>5.12.2</junit.version>
 		<assertj.version>3.27.6</assertj.version>
