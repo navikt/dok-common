@@ -21,7 +21,8 @@
 		<slf4j.version>2.0.17</slf4j.version>
 		<commons-lang3.version>3.20.0</commons-lang3.version>
 		<jakarta.validation-api.version>3.1.1</jakarta.validation-api.version>
-		<jackson-databind.version>2.21.2</jackson-databind.version>
+		<jackson.version>2.21.2</jackson.version>
+		<jackson-annotations.version>2.21</jackson-annotations.version>
 		<springframework.version>6.2.12</springframework.version>
 		<junit.version>5.12.2</junit.version>
 		<assertj.version>3.27.7</assertj.version>
@@ -51,7 +52,12 @@
 			<dependency>
 				<groupId>com.fasterxml.jackson.core</groupId>
 				<artifactId>jackson-databind</artifactId>
-				<version>${jackson-databind.version}</version>
+				<version>${jackson.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.fasterxml.jackson.core</groupId>
+				<artifactId>jackson-annotations</artifactId>
+				<version>${jackson-annotations.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>jakarta.validation</groupId>
