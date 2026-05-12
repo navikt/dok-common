@@ -57,7 +57,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<inputSpec>${project.basedir}/src/main/resources/altinnevent/altinn-cloudevents.yaml</inputSpec>
+							<inputSpec>${project.basedir}/src/main/resources/altinnevent/altinn-platform-events-v1.json</inputSpec>
 							<generatorName>spring</generatorName>
 							<library>spring-boot</library>
 							<generateApis>false</generateApis>
