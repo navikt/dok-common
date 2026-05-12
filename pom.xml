@@ -23,7 +23,7 @@
 		<jakarta.validation-api.version>3.1.1</jakarta.validation-api.version>
 		<jackson.version>2.21.3</jackson.version>
 		<jackson-annotations.version>2.21</jackson-annotations.version>
-		<springframework.version>6.2.12</springframework.version>
+		<springframework.version>7.0.7</springframework.version>
 		<junit.version>5.12.2</junit.version>
 		<assertj.version>3.27.7</assertj.version>
 		<jakarta.annotation-api.version>3.0.0</jakarta.annotation-api.version>
