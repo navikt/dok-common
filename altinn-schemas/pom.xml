@@ -57,7 +57,7 @@
 							<goal>generate</goal>
 						</goals>
 						<configuration>
-							<inputSpec>${project.basedir}/src/main/resources/altinnevent/altinn-cloudevents.yaml</inputSpec>
+							<inputSpec>${project.basedir}/src/main/resources/altinnevent/altinn-platform-events-v1.json</inputSpec>
 							<generatorName>spring</generatorName>
 							<library>spring-boot</library>
 							<generateApis>false</generateApis>
@@ -73,7 +73,7 @@
 								<interfaceOnly>true</interfaceOnly>
 								<skipDefaultInterface>true</skipDefaultInterface>
 								<hideGenerationTimestamp>true</hideGenerationTimestamp>
-								<additionalModelTypeAnnotations>@lombok.Builder @lombok.AllArgsConstructor</additionalModelTypeAnnotations>
+								<additionalModelTypeAnnotations>@lombok.Builder @lombok.NoArgsConstructor @lombok.AllArgsConstructor</additionalModelTypeAnnotations>
 							</configOptions>
 						</configuration>
 					</execution>
