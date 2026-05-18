@@ -1036,8 +1036,8 @@
       "CloudEvent": {
         "type": "object",
         "properties": {
-          "specversion": {
-            "type": "string"
+          "specVersion": {
+            "$ref": "#/components/schemas/CloudEventsSpecVersion"
           },
           "data": {
             "nullable": true
@@ -1060,13 +1060,6 @@
             "format": "uri",
             "nullable": true
           },
-          "resource": {
-            "type": "string"
-          },
-          "resourceinstance": {
-            "type": "string",
-            "format": "uuid"
-          },
           "subject": {
             "type": "string",
             "nullable": true
@@ -1077,9 +1070,6 @@
             "nullable": true
           },
           "type": {
-            "type": "string"
-          },
-          "alternativesubject": {
             "type": "string",
             "nullable": true
           },
