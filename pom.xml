@@ -27,7 +27,7 @@
 		<junit.version>5.12.2</junit.version>
 		<assertj.version>3.27.7</assertj.version>
 		<jakarta.annotation-api.version>3.0.0</jakarta.annotation-api.version>
-		<swagger-annotations.version>2.2.50</swagger-annotations.version>
+		<swagger-annotations.version>2.2.51</swagger-annotations.version>
 		<openapi-generator-maven-plugin.version>7.23.0</openapi-generator-maven-plugin.version>
 
 		<maven.compiler.source>21</maven.compiler.source>
