@@ -7,5 +7,4 @@ public class SaksKategori extends CustomField {
 	public SaksKategori(String cmdbId) {
 		super(SAKSKATEGORI_CUSTOMFIELD_KEY, cmdbId);
 	}
-
 }

@@ -13,8 +13,8 @@ public record JiraProperties(JiraServiceUser jiraServiceUser, @NotEmpty String u
 
 	/**
 	 * @param username applikasjonceller bruker jira brukernavn
-	 * @param password applikasjonen eller brukeren jira passord
+	 * @param accessToken applikasjonen eller brukeren jira passord
 	 */
-	public record JiraServiceUser(@NotEmpty String username, @NotEmpty String password) {
+	public record JiraServiceUser(@NotEmpty String username, @NotEmpty String accessToken) {
 	}
 }

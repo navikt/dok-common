@@ -11,7 +11,7 @@ public record BasicInputFields(
 		Project project,
 		String summary,
 		IssueType issuetype,
-		String description,
+		Description description,
 		String[] labels,
 		@JsonIgnore Map<String, ?> customProperties
 ) {

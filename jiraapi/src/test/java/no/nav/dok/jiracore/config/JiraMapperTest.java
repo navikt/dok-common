@@ -37,7 +37,7 @@ class JiraMapperTest {
 		var mappedJiraRequest = JiraMapper.map(jiraInternRequest, project, x -> true,
 				Stream.of(
 						new AnsvarligTeam("Custom property 1"),
-						new BeroertTjeneste("Custom property 2"),
+						new BeroertTjeneste("customfield_12623", "Custom property 2"),
 						new HypotheticalComplicatedCustomField()
 				));
 
@@ -45,7 +45,6 @@ class JiraMapperTest {
 		String mappedJson = objectMapper.writeValueAsString(mappedJiraRequest);
 
 		assertThat(mappedJson).contains(
-				"\"name\":\"Tim Dokumentløsninger\"",
 				"\"key\":\"PRO\"",
 				"\"key\":\"Custom property 1\"",
 				"\"key\":\"Custom property 2\"",
@@ -70,7 +69,7 @@ class JiraMapperTest {
 		var mappedJiraRequest = JiraMapper.map(jiraInternRequest, project, x -> true,
 				Stream.of(
 						new AnsvarligTeam("Custom property 1"),
-						new BeroertTjeneste("Custom property 2"),
+						new BeroertTjeneste("customfield_12623", "Custom property 2"),
 						new HypotheticalComplicatedCustomField()
 				));
 
@@ -97,7 +96,7 @@ class JiraMapperTest {
 		var mappedJiraRequest = JiraMapper.map(jiraInternRequest, project, x -> true,
 				Stream.of(
 						new AnsvarligTeam("Custom property 1"),
-						new BeroertTjeneste("Custom property 2"),
+						new BeroertTjeneste("customfield_12623", "Custom property 2"),
 						new HypotheticalComplicatedCustomField()
 				));
 
@@ -105,7 +104,6 @@ class JiraMapperTest {
 		String mappedJson = objectMapper.writeValueAsString(mappedJiraRequest);
 
 		assertThat(mappedJson).contains(
-				"\"name\":\"Tim Dokumentløsninger\"",
 				"\"key\":\"PRO\"",
 				"\"key\":\"Custom property 1\"",
 				"\"key\":\"Custom property 2\"",
