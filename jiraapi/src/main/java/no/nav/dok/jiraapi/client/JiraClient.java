@@ -16,7 +16,7 @@ import no.nav.dok.jiracore.interndomain.IssueInput;
 import no.nav.dok.jiracore.interndomain.IssueType;
 import no.nav.dok.jiracore.interndomain.JiraTransition;
 import no.nav.dok.jiracore.interndomain.Project;
-import no.nav.dok.jiracore.interndomain.SaksKategori;
+import no.nav.dok.jiracore.interndomain.Sakskategori;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.web.client.RestClient;
@@ -98,7 +98,7 @@ public class JiraClient {
 	 * @param ansvarligTeam team som issuet skal tildeles til
 	 * @return det nye issuet
 	 */
-	public CompleteJiraIssue opprettIKTOppgaveJira(JiraRequest request, SaksKategori saksKategori, AnsvarligTeam ansvarligTeam) {
+	public CompleteJiraIssue opprettIKTOppgaveJira(JiraRequest request, Sakskategori saksKategori, AnsvarligTeam ansvarligTeam) {
 		return opprettJira(request, PROJECT_KEY_IKT, ISSUE_TYPE_IKT_INCIDENT, CompleteJiraIssue.class,
 				Stream.of(saksKategori, ansvarligTeam));
 	}

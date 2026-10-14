@@ -20,11 +20,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class JiraMapperTest {
 
+	private static final String ACCOUNT_ID = "12";
+	private static final String DISPLAY_NAME = "Team Dokumentløsninger";
+
 	@Test
 	void mapAndSerializeWithExtraProperties() throws JsonProcessingException {
 		JiraRequest jiraInternRequest = JiraRequest.builder()
 				.description("description")
-				.reporterName("Tim Dokumentløsninger")
+				.reporter(new JiraRequest.Reporter(ACCOUNT_ID, DISPLAY_NAME))
 				.summary("an issue must be resolved")
 				.labels(emptyList())
 				.build();
@@ -56,7 +59,7 @@ class JiraMapperTest {
 	void mapAndSerializeWithExtraPropertiesNoReporter() throws JsonProcessingException {
 		JiraRequest jiraInternRequest = JiraRequest.builder()
 				.description("description")
-				.reporterName(null)
+				.reporter(null)
 				.summary("an issue must be resolved")
 				.labels(emptyList())
 				.build();
@@ -83,7 +86,7 @@ class JiraMapperTest {
 	void mapAndSerializeWithExtraPropertiesAndSuccessfullyDeserialize() throws JsonProcessingException {
 		JiraRequest jiraInternRequest = JiraRequest.builder()
 				.description("description")
-				.reporterName("Tim Dokumentløsninger")
+				.reporter(new JiraRequest.Reporter(ACCOUNT_ID, DISPLAY_NAME))
 				.summary("an issue must be resolved")
 				.labels(emptyList())
 				.build();

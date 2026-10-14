@@ -7,7 +7,6 @@ import no.nav.dok.jiracore.interndomain.Description;
 import no.nav.dok.jiracore.interndomain.IssueInput;
 import no.nav.dok.jiracore.interndomain.IssueType;
 import no.nav.dok.jiracore.interndomain.Project;
-import no.nav.dok.jiracore.interndomain.Reporter;
 
 import java.util.HashMap;
 import java.util.List;
@@ -24,8 +23,7 @@ public class JiraMapper {
 	public static IssueInput map(JiraRequest jiraInternRequest, Project project, Predicate<IssueType> issueTypePredicate, Stream<CustomField> customFields) {
 		Map<String, Object> extraProperties = new HashMap<>();
 
-		Optional<Reporter> reporter = Optional.ofNullable(jiraInternRequest.reporterName()).map(Reporter::new);
-		reporter.ifPresent(reporter1 -> extraProperties.put("reporter", reporter1));
+		Optional.ofNullable(jiraInternRequest.reporter()).ifPresent(reporter -> extraProperties.put("reporter", reporter));
 		extraProperties.putAll(mapCustomFields(customFields));
 
 		Project newProject = Project.builder()
