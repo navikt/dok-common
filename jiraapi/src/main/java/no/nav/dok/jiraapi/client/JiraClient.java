@@ -16,7 +16,7 @@ import no.nav.dok.jiracore.interndomain.IssueInput;
 import no.nav.dok.jiracore.interndomain.IssueType;
 import no.nav.dok.jiracore.interndomain.JiraTransition;
 import no.nav.dok.jiracore.interndomain.Project;
-import no.nav.dok.jiracore.interndomain.SaksKategori;
+import no.nav.dok.jiracore.interndomain.Sakskategori;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.web.client.RestClient;
@@ -36,14 +36,14 @@ import static java.lang.String.format;
 import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 import static java.net.HttpURLConnection.HTTP_CREATED;
 import static java.net.HttpURLConnection.HTTP_OK;
-import static no.nav.dok.jiracore.config.JiraConstant.ATTACHMENT;
+import static no.nav.dok.jiracore.config.JiraConstant.ATTACHMENTS;
 import static no.nav.dok.jiracore.config.JiraConstant.ISSUE_PATH;
 import static no.nav.dok.jiracore.config.JiraConstant.ISSUE_TYPE_IKT_INCIDENT;
 import static no.nav.dok.jiracore.config.JiraConstant.ISSUE_TYPE_MMA_OPPGAVE;
 import static no.nav.dok.jiracore.config.JiraConstant.PROJECT_KEY_IKT;
 import static no.nav.dok.jiracore.config.JiraConstant.PROJECT_KEY_TDH;
 import static no.nav.dok.jiracore.config.JiraConstant.PROJECT_PATH;
-import static no.nav.dok.jiracore.config.JiraConstant.TRANSITION;
+import static no.nav.dok.jiracore.config.JiraConstant.TRANSITIONS;
 import static no.nav.dok.jiracore.config.JiraConstant.TRANSITION_ID_KLAR_TIL_ARBEID;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
@@ -74,7 +74,7 @@ public class JiraClient {
 		this.restClient = RestClient.builder()
 				.baseUrl(jiraProperties.url())
 				.defaultHeaders(httpHeaders -> {
-					httpHeaders.setBasicAuth(jiraProperties.jiraServiceUser().username(), jiraProperties.jiraServiceUser().password());
+					httpHeaders.setBasicAuth(jiraProperties.jiraServiceUser().username(), jiraProperties.jiraServiceUser().accessToken());
 					httpHeaders.set("X-Atlassian-Token", "no-check");
 				})
 				.build();
@@ -96,12 +96,11 @@ public class JiraClient {
 	 * @param request       en request med de nødvendige feltene
 	 * @param saksKategori  kategori av issue i IKT-prosjektet
 	 * @param ansvarligTeam team som issuet skal tildeles til
-	 * @param customFields  ytteligere CustomField som skal legges til issuet
 	 * @return det nye issuet
 	 */
-	public CompleteJiraIssue opprettIKTOppgaveJira(JiraRequest request, SaksKategori saksKategori, AnsvarligTeam ansvarligTeam, CustomField... customFields) {
+	public CompleteJiraIssue opprettIKTOppgaveJira(JiraRequest request, Sakskategori saksKategori, AnsvarligTeam ansvarligTeam) {
 		return opprettJira(request, PROJECT_KEY_IKT, ISSUE_TYPE_IKT_INCIDENT, CompleteJiraIssue.class,
-				Stream.concat(Stream.of(saksKategori, ansvarligTeam), Stream.of(customFields)));
+				Stream.of(saksKategori, ansvarligTeam));
 	}
 
 	/**
@@ -148,7 +147,7 @@ public class JiraClient {
 				.part("file", vedleggFraByteArray(request))
 				.filename(request.filnavn());
 		restClient.post()
-				.uri(uriBuilder -> uriBuilder.path(ISSUE_PATH + "/" + key + ATTACHMENT)
+				.uri(uriBuilder -> uriBuilder.path(ISSUE_PATH + "/" + key + ATTACHMENTS)
 						.build())
 				.header(CONTENT_TYPE, MULTIPART_FORM_DATA_VALUE)
 				.body(multipartBodyBuilder.build())
@@ -188,7 +187,7 @@ public class JiraClient {
 	 */
 	public Issue oppdaterJiraStatusTilKlarTilArbeid(final String key) {
 		JiraTransition transition = new JiraTransition(new JiraTransition.Transition(TRANSITION_ID_KLAR_TIL_ARBEID));
-		HttpRequest httpRequest = httpRequestBuilder().uri(URI.create(jiraProperties.url() + ISSUE_PATH + "/" + key + TRANSITION))
+		HttpRequest httpRequest = httpRequestBuilder().uri(URI.create(jiraProperties.url() + ISSUE_PATH + "/" + key + TRANSITIONS))
 				.header(CONTENT_TYPE, APPLICATION_JSON_VALUE)
 				.POST(HttpRequest.BodyPublishers.ofString(serialize(transition)))
 				.build();
@@ -222,7 +221,7 @@ public class JiraClient {
 	}
 
 	private String getBasicAuthenticationHeader() {
-		String valueToEncode = jiraProperties.jiraServiceUser().username() + ":" + jiraProperties.jiraServiceUser().password();
+		String valueToEncode = jiraProperties.jiraServiceUser().username() + ":" + jiraProperties.jiraServiceUser().accessToken();
 		return "Basic " + Base64.getEncoder().encodeToString(valueToEncode.getBytes());
 	}
 

@@ -20,11 +20,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class JiraMapperTest {
 
+	private static final String ACCOUNT_ID = "12";
+	private static final String DISPLAY_NAME = "Team Dokumentløsninger";
+
 	@Test
 	void mapAndSerializeWithExtraProperties() throws JsonProcessingException {
 		JiraRequest jiraInternRequest = JiraRequest.builder()
 				.description("description")
-				.reporterName("Tim Dokumentløsninger")
+				.reporter(new JiraRequest.Reporter(ACCOUNT_ID, DISPLAY_NAME))
 				.summary("an issue must be resolved")
 				.labels(emptyList())
 				.build();
@@ -37,7 +40,7 @@ class JiraMapperTest {
 		var mappedJiraRequest = JiraMapper.map(jiraInternRequest, project, x -> true,
 				Stream.of(
 						new AnsvarligTeam("Custom property 1"),
-						new BeroertTjeneste("Custom property 2"),
+						new BeroertTjeneste("customfield_12623", "Custom property 2"),
 						new HypotheticalComplicatedCustomField()
 				));
 
@@ -45,7 +48,6 @@ class JiraMapperTest {
 		String mappedJson = objectMapper.writeValueAsString(mappedJiraRequest);
 
 		assertThat(mappedJson).contains(
-				"\"name\":\"Tim Dokumentløsninger\"",
 				"\"key\":\"PRO\"",
 				"\"key\":\"Custom property 1\"",
 				"\"key\":\"Custom property 2\"",
@@ -57,7 +59,7 @@ class JiraMapperTest {
 	void mapAndSerializeWithExtraPropertiesNoReporter() throws JsonProcessingException {
 		JiraRequest jiraInternRequest = JiraRequest.builder()
 				.description("description")
-				.reporterName(null)
+				.reporter(null)
 				.summary("an issue must be resolved")
 				.labels(emptyList())
 				.build();
@@ -70,7 +72,7 @@ class JiraMapperTest {
 		var mappedJiraRequest = JiraMapper.map(jiraInternRequest, project, x -> true,
 				Stream.of(
 						new AnsvarligTeam("Custom property 1"),
-						new BeroertTjeneste("Custom property 2"),
+						new BeroertTjeneste("customfield_12623", "Custom property 2"),
 						new HypotheticalComplicatedCustomField()
 				));
 
@@ -84,7 +86,7 @@ class JiraMapperTest {
 	void mapAndSerializeWithExtraPropertiesAndSuccessfullyDeserialize() throws JsonProcessingException {
 		JiraRequest jiraInternRequest = JiraRequest.builder()
 				.description("description")
-				.reporterName("Tim Dokumentløsninger")
+				.reporter(new JiraRequest.Reporter(ACCOUNT_ID, DISPLAY_NAME))
 				.summary("an issue must be resolved")
 				.labels(emptyList())
 				.build();
@@ -97,7 +99,7 @@ class JiraMapperTest {
 		var mappedJiraRequest = JiraMapper.map(jiraInternRequest, project, x -> true,
 				Stream.of(
 						new AnsvarligTeam("Custom property 1"),
-						new BeroertTjeneste("Custom property 2"),
+						new BeroertTjeneste("customfield_12623", "Custom property 2"),
 						new HypotheticalComplicatedCustomField()
 				));
 
@@ -105,7 +107,6 @@ class JiraMapperTest {
 		String mappedJson = objectMapper.writeValueAsString(mappedJiraRequest);
 
 		assertThat(mappedJson).contains(
-				"\"name\":\"Tim Dokumentløsninger\"",
 				"\"key\":\"PRO\"",
 				"\"key\":\"Custom property 1\"",
 				"\"key\":\"Custom property 2\"",

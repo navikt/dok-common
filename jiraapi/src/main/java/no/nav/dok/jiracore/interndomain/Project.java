@@ -8,13 +8,11 @@ import java.util.List;
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record Project(
-		String expand,
 		String self,
 		String id,
 		String key,
-		String description,
 		String name,
-		String url,
+		String description,
 		List<Component> components,
 		List<IssueType> issueTypes) {
 }

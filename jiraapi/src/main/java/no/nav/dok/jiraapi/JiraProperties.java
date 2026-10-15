@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotEmpty;
 import lombok.Builder;
 
 /**
- * @param jiraServiceUser jira brukernavn og passord
+ * @param jiraServiceUser jira brukernavn og accessToken
  * @param url             jira url
  */
 
@@ -12,9 +12,9 @@ import lombok.Builder;
 public record JiraProperties(JiraServiceUser jiraServiceUser, @NotEmpty String url) {
 
 	/**
-	 * @param username applikasjonceller bruker jira brukernavn
-	 * @param password applikasjonen eller brukeren jira passord
+	 * @param username applikasjonens eller brukerens brukernavn
+	 * @param accessToken applikasjonens eller brukerens accessToken
 	 */
-	public record JiraServiceUser(@NotEmpty String username, @NotEmpty String password) {
+	public record JiraServiceUser(@NotEmpty String username, @NotEmpty String accessToken) {
 	}
 }

@@ -3,10 +3,10 @@ package no.nav.dok.jiracore.config;
 import no.nav.dok.jiraapi.JiraRequest;
 import no.nav.dok.jiracore.interndomain.BasicInputFields;
 import no.nav.dok.jiracore.interndomain.CustomField;
+import no.nav.dok.jiracore.interndomain.Description;
 import no.nav.dok.jiracore.interndomain.IssueInput;
 import no.nav.dok.jiracore.interndomain.IssueType;
 import no.nav.dok.jiracore.interndomain.Project;
-import no.nav.dok.jiracore.interndomain.Reporter;
 
 import java.util.HashMap;
 import java.util.List;
@@ -23,8 +23,7 @@ public class JiraMapper {
 	public static IssueInput map(JiraRequest jiraInternRequest, Project project, Predicate<IssueType> issueTypePredicate, Stream<CustomField> customFields) {
 		Map<String, Object> extraProperties = new HashMap<>();
 
-		Optional<Reporter> reporter = Optional.ofNullable(jiraInternRequest.reporterName()).map(name -> new Reporter(null, name, null));
-		reporter.ifPresent(reporter1 -> extraProperties.put("reporter", reporter1));
+		Optional.ofNullable(jiraInternRequest.reporter()).ifPresent(reporter -> extraProperties.put("reporter", reporter));
 		extraProperties.putAll(mapCustomFields(customFields));
 
 		Project newProject = Project.builder()
@@ -41,12 +40,27 @@ public class JiraMapper {
 				.project(newProject)
 				.issuetype(newIssueType)
 				.summary(jiraInternRequest.summary())
-				.description(jiraInternRequest.description())
+				.description(mapDescription(jiraInternRequest.description()))
 				.labels(jiraInternRequest.labels().toArray(String[]::new))
 				.customProperties(extraProperties)
 				.build();
 
 		return new IssueInput(basicInputFields);
+	}
+
+	public static Description mapDescription(String description) {
+		Description.ContentItem contentItem = new Description.ContentItem(
+				"text",
+				description
+		);
+
+		Description.Content content = new Description.Content(
+				"paragraph",
+				List.of(contentItem)
+		);
+
+		return new Description("doc", 1, List.of(content)
+		);
 	}
 
 	public static Map<String, List<Map<String, String>>> mapCustomFields(Stream<CustomField> customFields) {

@@ -10,7 +10,6 @@ import java.net.URI;
 
 import static java.lang.String.format;
 import static java.util.Objects.isNull;
-import static no.nav.dok.jiracore.config.JiraConstant.BEROERT_TJENESTE_DOKUMENTLOESNINGER;
 import static no.nav.dok.jiracore.config.JiraConstant.BROWSE;
 import static no.nav.dok.jiracore.config.JiraConstant.NO_CONTENT_STATUS_CODE;
 import static no.nav.dok.jiracore.config.JiraConstant.OK_STATUS_CODE;
@@ -66,8 +65,7 @@ public class JiraService {
 	public JiraResponse opprettJiraIKTOppgave(JiraRequest jiraRequest, AnsvarligTeam ansvarligTeam) {
 		CompleteJiraIssue issue = jiraClient.opprettIKTOppgaveJira(jiraRequest,
 				SAKSKATEGORI_TJENESTE_UTILGJENGELIG,
-				ansvarligTeam,
-				BEROERT_TJENESTE_DOKUMENTLOESNINGER
+				ansvarligTeam
 		);
 
 		return JiraResponse.builder().jiraIssueKey(issue.getKey())
