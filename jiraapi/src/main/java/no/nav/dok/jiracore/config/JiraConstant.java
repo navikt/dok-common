@@ -15,7 +15,7 @@ public class JiraConstant {
 	public static final String TRANSITIONS = "/transitions";
 	public static final String PROJECT_KEY_TDH = "MMA";
 	public static final String PROJECT_KEY_IKT = "IKT";
-	public static final String TRANSITION_ID_KLAR_TIL_ARBEID = "461";
+	public static final String TRANSITION_ID_KLAR_TIL_ARBEID = "121";
 	public static final String BROWSE = "/browse/";
 
 	public static final String OK_STATUS_CODE = "OK";

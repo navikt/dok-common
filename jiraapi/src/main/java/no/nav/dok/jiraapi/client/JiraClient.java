@@ -28,7 +28,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
-import java.util.Base64;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -74,7 +73,7 @@ public class JiraClient {
 		this.restClient = RestClient.builder()
 				.baseUrl(jiraProperties.url())
 				.defaultHeaders(httpHeaders -> {
-					httpHeaders.setBasicAuth(jiraProperties.jiraServiceUser().username(), jiraProperties.jiraServiceUser().accessToken());
+					httpHeaders.setBearerAuth(jiraProperties.jiraServiceUser().accessToken());
 					httpHeaders.set("X-Atlassian-Token", "no-check");
 				})
 				.build();
@@ -221,8 +220,7 @@ public class JiraClient {
 	}
 
 	private String getBasicAuthenticationHeader() {
-		String valueToEncode = jiraProperties.jiraServiceUser().username() + ":" + jiraProperties.jiraServiceUser().accessToken();
-		return "Basic " + Base64.getEncoder().encodeToString(valueToEncode.getBytes());
+		return "Bearer " + jiraProperties.jiraServiceUser().accessToken();
 	}
 
 	private String serialize(Object object) {
