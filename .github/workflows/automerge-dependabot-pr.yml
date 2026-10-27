@@ -17,3 +17,4 @@ jobs:
     secrets: inherit
     with:
       build-artifact: true
+      use-app-token: false
